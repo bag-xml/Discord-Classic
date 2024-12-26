@@ -5,36 +5,36 @@
 	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
 	<false/>
 	<key>IDESourceControlProjectIdentifier</key>
-	<string>6FA21625-F566-4576-A2FE-9B8616F4811F</string>
+	<string>162FF899-7ED6-4CF2-9D79-517003AE87D6</string>
 	<key>IDESourceControlProjectName</key>
 	<string>Discord Classic</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>94B20966-D5F3-4BC6-921C-D1C61A15E867</key>
-		<string>https://github.com/bag-xml/iOS-Discord-Classic.git</string>
+		<key>D8DF787B-2FD1-4256-AC9B-1209DE78B619</key>
+		<string>https://github.com/bag-xml/iOS-Discord-Classic</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>src/Discord Classic.xcodeproj/project.xcworkspace</string>
+	<string>Discord Classic.xcodeproj/project.xcworkspace</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>94B20966-D5F3-4BC6-921C-D1C61A15E867</key>
-		<string>../../..</string>
+		<key>D8DF787B-2FD1-4256-AC9B-1209DE78B619</key>
+		<string>../..</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
-	<string>https://github.com/bag-xml/iOS-Discord-Classic.git</string>
+	<string>https://github.com/bag-xml/iOS-Discord-Classic</string>
 	<key>IDESourceControlProjectVersion</key>
 	<integer>110</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>94B20966-D5F3-4BC6-921C-D1C61A15E867</string>
+	<string>D8DF787B-2FD1-4256-AC9B-1209DE78B619</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>94B20966-D5F3-4BC6-921C-D1C61A15E867</string>
+			<string>D8DF787B-2FD1-4256-AC9B-1209DE78B619</string>
 			<key>IDESourceControlWCCName</key>
-			<string>iOS-Discord-Classic</string>
+			<string>src</string>
 		</dict>
 	</array>
 </dict>

@@ -3,7 +3,7 @@
 //  Discord Classic
 //
 //  Created by Trevir on 11/24/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import "DCInfoPageViewController.h"
@@ -16,7 +16,7 @@
 
 - (void)viewDidLoad{
 	[super viewDidLoad];
-	self.creditLinks = [NSArray arrayWithObjects:@"https://twitter.com/torutheredfox", @"https://bag-xml.com/me/", @"https://twitter.com/trev3d", @"https://github.com/ndcube", @"https://discord.com", @"https://example.com", @"https://example.com", nil];
+	self.creditLinks = [NSArray arrayWithObjects:@"https://twitter.com/torutheredfox", @"https://mali357.gay/about/", @"https://twitter.com/trev3d", @"https://github.com/ndcube", @"https://discord.com", @"https://example.com", @"https://example.com", nil];
 }
 
 - (void)didReceiveMemoryWarning{[super didReceiveMemoryWarning];}

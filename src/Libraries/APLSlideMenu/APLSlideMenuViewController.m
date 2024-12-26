@@ -214,7 +214,7 @@ static CGFloat kAPLSlideMenuFirstOffset = 4.0;
 -(void)setMenuViewVisible:(BOOL)menuViewVisible {
     _menuViewVisible = menuViewVisible;
     if ([self respondsToSelector:@selector(setNeedsStatusBarAppearanceUpdate)]) {
-        [self setNeedsStatusBarAppearanceUpdate];
+        //[self setNeedsStatusBarAppearanceUpdate];
     }
 }
 

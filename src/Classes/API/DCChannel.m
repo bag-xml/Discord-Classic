@@ -2,8 +2,8 @@
 //  DCChannel.m
 //  Discord Classic
 //
-//  Created by bag.xml on 3/12/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/12/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import "DCChannel.h"
@@ -293,7 +293,6 @@ static dispatch_queue_t channel_send_queue;
 }
 
 
-
 - (NSArray*)getMessages:(int)numberOfMessages beforeMessage:(DCMessage*)message{
 	
     NSMutableArray* messages = NSMutableArray.new;
@@ -331,9 +330,23 @@ static dispatch_queue_t channel_send_queue;
             NSError *error = nil;
             NSArray* parsedResponse = [NSJSONSerialization JSONObjectWithData:response options:0 error:&error];
             
-            if(parsedResponse.count > 0)
-                for(NSDictionary* jsonMessage in parsedResponse)
-                    [messages insertObject:[DCTools convertJsonMessage:jsonMessage] atIndex:0];
+            if(parsedResponse.count > 0) {
+                for(NSDictionary* jsonMessage in parsedResponse) {
+                    
+                    DCMessage *converted = [DCTools convertJsonMessage:jsonMessage];
+                    
+                    // --- Mark Call Messages as Missed Calls
+                    NSDictionary *callData = jsonMessage[@"call"];
+                    if (callData != nil) {
+                        converted.missedCall = YES;
+                        
+                        // Optional: Override content to show "Missed Call"
+                        converted.content = @"📞 Missed call";
+                    }
+                    
+                    [messages insertObject:converted atIndex:0];
+                }
+            }
             
             for (int i=0; i < messages.count; i++)
             {

@@ -2,8 +2,8 @@
 //  DCChatViewController.m
 //  Discord Classic
 //
-//  Created by bag.xml on 3/6/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/6/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import "DCChatViewController.h"
@@ -19,6 +19,7 @@
 #import "NSString+Emojize.h"
 #import "QuickLook/QuickLook.h"
 #import "DCCInfoViewController.h"
+
 @interface DCChatViewController()
 @property int numberOfMessagesLoaded;
 @property UIImage* selectedImage;
@@ -319,12 +320,13 @@ static dispatch_queue_t chat_messages_queue;
     [tableView registerNib:[UINib nibWithNibName:@"DCChatReplyTableCell" bundle:nil] forCellReuseIdentifier:@"Reply Message Cell"];
     [tableView registerNib:[UINib nibWithNibName:@"DCMissedCallCell" bundle:nil] forCellReuseIdentifier:@"Missed Call Message Cell"];
     
-    if (messageAtRowIndex.isGrouped)
+    if (messageAtRowIndex.isGrouped && !messageAtRowIndex.missedCall)
         cell = [tableView dequeueReusableCellWithIdentifier:@"Grouped Message Cell"];
     else if (messageAtRowIndex.referencedMessage != nil)
         cell = [tableView dequeueReusableCellWithIdentifier:@"Reply Message Cell"];
-    else if(messageAtRowIndex.missedCall)
+    else if(messageAtRowIndex.missedCall) {
         cell = [tableView dequeueReusableCellWithIdentifier:@"Missed Call Message Cell"];
+    }
     else
         cell = [tableView dequeueReusableCellWithIdentifier:@"Message Cell"];
     
@@ -343,7 +345,7 @@ static dispatch_queue_t chat_messages_queue;
         [cell.timestampLabel setText:messageAtRowIndex.prettyTimestamp];
         [cell.timestampLabel setFrame:CGRectMake(messageAtRowIndex.authorNameWidth, cell.timestampLabel.y, self.chatTableView.width-messageAtRowIndex.authorNameWidth, cell.timestampLabel.height)];
     }
-	
+    
     NSString* content = [messageAtRowIndex.content emojizedString];
     
     content = [content stringByReplacingOccurrencesOfString:@"\u2122\uFE0F" withString:@"™"];
@@ -467,10 +469,16 @@ static dispatch_queue_t chat_messages_queue;
 }
 
 
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
-	DCMessage* messageAtRowIndex = [self.messages objectAtIndex:indexPath.row];
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
+    DCMessage* messageAtRowIndex = [self.messages objectAtIndex:indexPath.row];
     
-	return messageAtRowIndex.contentHeight + (messageAtRowIndex.attachmentCount * 224) + (messageAtRowIndex.attachmentCount > 0 ? 11 : 0);
+    if (messageAtRowIndex.missedCall) {
+        return 48.0f;
+    }
+    
+    return messageAtRowIndex.contentHeight
+    + (messageAtRowIndex.attachmentCount * 224)
+    + (messageAtRowIndex.attachmentCount > 0 ? 11 : 0);
 }
 
 
@@ -647,6 +655,7 @@ static dispatch_queue_t chat_messages_queue;
     
     if([segue.destinationViewController class] == [DCContactViewController class]){
         [((DCContactViewController*)segue.destinationViewController) setSelectedUser:self.selectedMessage.author];
+        [((DCContactViewController*)segue.destinationViewController) requestProfileInformation:self.selectedMessage.author];
     }
     
 }

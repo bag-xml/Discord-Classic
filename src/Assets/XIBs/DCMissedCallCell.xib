@@ -43,25 +43,27 @@
 							<object class="IBUIImageView" id="540558230">
 								<reference key="NSNextResponder" ref="389460513"/>
 								<int key="NSvFlags">292</int>
-								<string key="NSFrame">{{61, 15}, {40, 40}}</string>
+								<string key="NSFrame">{{7, 5}, {40, 39}}</string>
 								<reference key="NSSuperview" ref="389460513"/>
+								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="828835004"/>
-								<object class="NSColor" key="IBUIBackgroundColor">
-									<int key="NSColorSpace">1</int>
-									<bytes key="NSRGB">MC4yNjQzMDA4MTgxIDAuMjA0NzMwNzc4MiAwLjM4ODU3MjIyNTgAA</bytes>
+								<object class="NSColor" key="IBUIBackgroundColor" id="497209881">
+									<int key="NSColorSpace">3</int>
+									<bytes key="NSWhite">MCAwAA</bytes>
 								</object>
 								<bool key="IBUIUserInteractionEnabled">NO</bool>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 								<object class="NSCustomResource" key="IBUIImage">
 									<string key="NSClassName">NSImage</string>
-									<string key="NSResourceName">menu.png</string>
+									<string key="NSResourceName">bag-xml.png</string>
 								</object>
 							</object>
 							<object class="IBUIImageView" id="923545624">
 								<reference key="NSNextResponder" ref="389460513"/>
 								<int key="NSvFlags">292</int>
-								<string key="NSFrame">{{48, 3}, {254, 64}}</string>
+								<string key="NSFrame">{{-11, 1}, {343, 48}}</string>
 								<reference key="NSSuperview" ref="389460513"/>
+								<reference key="NSWindow"/>
 								<reference key="NSNextKeyView" ref="540558230"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<string key="NSHuggingPriority">{251, 251}</string>
@@ -75,8 +77,10 @@
 							<object class="IBUITextView" id="828835004">
 								<reference key="NSNextResponder" ref="389460513"/>
 								<int key="NSvFlags">292</int>
-								<string key="NSFrame">{{109, 10}, {181, 57}}</string>
+								<string key="NSFrame">{{53, 8}, {227, 35}}</string>
 								<reference key="NSSuperview" ref="389460513"/>
+								<reference key="NSWindow"/>
+								<reference key="NSNextKeyView"/>
 								<string key="NSReuseIdentifierKey">_NS:9</string>
 								<object class="NSColor" key="IBUIBackgroundColor">
 									<int key="NSColorSpace">1</int>
@@ -85,6 +89,7 @@
 								<bool key="IBUIClipsSubviews">YES</bool>
 								<bool key="IBUIMultipleTouchEnabled">YES</bool>
 								<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
+								<bool key="IBUIEditable">NO</bool>
 								<string key="IBUIText">Missed call on 3 minutes ago</string>
 								<object class="NSColor" key="IBUITextColor">
 									<int key="NSColorSpace">1</int>
@@ -105,13 +110,11 @@
 								</object>
 							</object>
 						</array>
-						<string key="NSFrameSize">{320, 70}</string>
+						<string key="NSFrameSize">{320, 50}</string>
 						<reference key="NSSuperview" ref="233494426"/>
+						<reference key="NSWindow"/>
 						<reference key="NSNextKeyView" ref="923545624"/>
-						<object class="NSColor" key="IBUIBackgroundColor">
-							<int key="NSColorSpace">3</int>
-							<bytes key="NSWhite">MCAwAA</bytes>
-						</object>
+						<reference key="IBUIBackgroundColor" ref="497209881"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClipsSubviews">YES</bool>
 						<int key="IBUIContentMode">4</int>
@@ -119,8 +122,9 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 					</object>
 				</array>
-				<string key="NSFrameSize">{320, 71}</string>
+				<string key="NSFrameSize">{320, 51}</string>
 				<reference key="NSSuperview"/>
+				<reference key="NSWindow"/>
 				<reference key="NSNextKeyView" ref="389460513"/>
 				<object class="NSColor" key="IBUIBackgroundColor">
 					<int key="NSColorSpace">1</int>
@@ -131,8 +135,8 @@
 				<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 				<int key="IBUISelectionStyle">0</int>
 				<reference key="IBUIContentView" ref="389460513"/>
-				<string key="IBUIReuseIdentifier">Message Cell</string>
-				<real value="71" key="IBUIRowHeight"/>
+				<string key="IBUIReuseIdentifier">Missed Call Message Cell</string>
+				<real value="51" key="IBUIRowHeight"/>
 			</object>
 		</array>
 		<object class="IBObjectContainer" key="IBDocument.Objects">
@@ -178,9 +182,9 @@
 						<string key="id">37</string>
 						<reference key="object" ref="233494426"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="923545624"/>
 							<reference ref="540558230"/>
 							<reference ref="828835004"/>
+							<reference ref="923545624"/>
 						</array>
 						<reference key="parent" ref="0"/>
 					</object>
@@ -190,13 +194,13 @@
 						<reference key="parent" ref="233494426"/>
 					</object>
 					<object class="IBObjectRecord">
-						<string key="id">lrd-xF-HbR</string>
-						<reference key="object" ref="923545624"/>
+						<string key="id">2zz-Z9-oXS</string>
+						<reference key="object" ref="828835004"/>
 						<reference key="parent" ref="233494426"/>
 					</object>
 					<object class="IBObjectRecord">
-						<string key="id">2zz-Z9-oXS</string>
-						<reference key="object" ref="828835004"/>
+						<string key="id">lrd-xF-HbR</string>
+						<reference key="object" ref="923545624"/>
 						<reference key="parent" ref="233494426"/>
 					</object>
 				</array>
@@ -222,7 +226,62 @@
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
 		</object>
-		<object class="IBClassDescriber" key="IBDocument.Classes"/>
+		<object class="IBClassDescriber" key="IBDocument.Classes">
+			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
+				<object class="IBPartialClassDescription">
+					<string key="className">DCChatTableCell</string>
+					<string key="superclassName">UITableViewCell</string>
+					<dictionary class="NSMutableDictionary" key="outlets">
+						<string key="authorLabel">UILabel</string>
+						<string key="avatarDecoration">UIImageView</string>
+						<string key="contentTextView">UITextView</string>
+						<string key="profileImage">UIImageView</string>
+						<string key="referencedAuthorLabel">UILabel</string>
+						<string key="referencedMessage">UILabel</string>
+						<string key="referencedProfileImage">UIImageView</string>
+						<string key="timestampLabel">UILabel</string>
+					</dictionary>
+					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
+						<object class="IBToOneOutletInfo" key="authorLabel">
+							<string key="name">authorLabel</string>
+							<string key="candidateClassName">UILabel</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="avatarDecoration">
+							<string key="name">avatarDecoration</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="contentTextView">
+							<string key="name">contentTextView</string>
+							<string key="candidateClassName">UITextView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="profileImage">
+							<string key="name">profileImage</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="referencedAuthorLabel">
+							<string key="name">referencedAuthorLabel</string>
+							<string key="candidateClassName">UILabel</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="referencedMessage">
+							<string key="name">referencedMessage</string>
+							<string key="candidateClassName">UILabel</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="referencedProfileImage">
+							<string key="name">referencedProfileImage</string>
+							<string key="candidateClassName">UIImageView</string>
+						</object>
+						<object class="IBToOneOutletInfo" key="timestampLabel">
+							<string key="name">timestampLabel</string>
+							<string key="candidateClassName">UILabel</string>
+						</object>
+					</dictionary>
+					<object class="IBClassDescriptionSource" key="sourceIdentifier">
+						<string key="majorKey">IBProjectSource</string>
+						<string key="minorKey">./Classes/DCChatTableCell.h</string>
+					</object>
+				</object>
+			</array>
+		</object>
 		<int key="IBDocument.localizationMode">0</int>
 		<string key="IBDocument.TargetRuntimeIdentifier">IBCocoaTouchFramework</string>
 		<bool key="IBDocument.previouslyAttemptedUpgradeToXcode5">YES</bool>
@@ -242,7 +301,7 @@
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
 		<dictionary class="NSMutableDictionary" key="IBDocument.LastKnownImageSizes">
 			<string key="TestCallEmbed.png">{507, 110}</string>
-			<string key="menu.png">{24, 24}</string>
+			<string key="bag-xml.png">{286, 286}</string>
 		</dictionary>
 		<string key="IBCocoaTouchPluginVersion">3733</string>
 	</data>

@@ -2,8 +2,8 @@
 //  DCCInfoViewController.h
 //  Discord Classic
 //
-//  Created by XML on 12/11/23.
-//  Copyright (c) 2023 bag.xml. All rights reserved.
+//  Created by Defne on 12/11/23.
+//  Copyright (c) 2023 Julian Triveri. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

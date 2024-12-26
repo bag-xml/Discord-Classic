@@ -139,10 +139,6 @@
 		5B2105C22D18C116005B9596 /* DCGuildTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B2105C12D18C116005B9596 /* DCGuildTableViewCell.m */; };
 		5B3890DB2D1C53CB002D3BBE /* GuildIconBase.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B3890DA2D1C53CB002D3BBE /* GuildIconBase.png */; };
 		5B3890DD2D1C54D8002D3BBE /* GuildIconBaseSelected.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B3890DC2D1C54D8002D3BBE /* GuildIconBaseSelected.png */; };
-		5B3890E12D1C7A11002D3BBE /* pfpOverlay.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B3890DF2D1C7A11002D3BBE /* pfpOverlay.png */; };
-		5B3890E22D1C7A11002D3BBE /* pfpOverlay@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5B3890E02D1C7A11002D3BBE /* pfpOverlay@2x.png */; };
-		5BAE842B2D1C84AE00C021F9 /* UIColorHex.m in Sources */ = {isa = PBXBuildFile; fileRef = 5BAE842A2D1C84AE00C021F9 /* UIColorHex.m */; };
-		5BAE842D2D1C9FDB00C021F9 /* Throwback.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 5BAE842C2D1C9FDB00C021F9 /* Throwback.storyboard */; };
 		5BB5D7362D19545B00C54C0A /* privateGuildLogo.png in Resources */ = {isa = PBXBuildFile; fileRef = 5BB5D7342D19545B00C54C0A /* privateGuildLogo.png */; };
 		5BB5D7372D19545B00C54C0A /* privateGuildLogo@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 5BB5D7352D19545B00C54C0A /* privateGuildLogo@2x.png */; };
 		5BB5D73A2D1956F700C54C0A /* bannerTopShadow.png in Resources */ = {isa = PBXBuildFile; fileRef = 5BB5D7382D1956F700C54C0A /* bannerTopShadow.png */; };
@@ -325,11 +321,6 @@
 		5B2105C12D18C116005B9596 /* DCGuildTableViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCGuildTableViewCell.m; sourceTree = "<group>"; };
 		5B3890DA2D1C53CB002D3BBE /* GuildIconBase.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GuildIconBase.png; sourceTree = "<group>"; };
 		5B3890DC2D1C54D8002D3BBE /* GuildIconBaseSelected.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = GuildIconBaseSelected.png; sourceTree = "<group>"; };
-		5B3890DF2D1C7A11002D3BBE /* pfpOverlay.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pfpOverlay.png; sourceTree = "<group>"; };
-		5B3890E02D1C7A11002D3BBE /* pfpOverlay@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "pfpOverlay@2x.png"; sourceTree = "<group>"; };
-		5BAE84292D1C84AE00C021F9 /* UIColorHex.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UIColorHex.h; sourceTree = "<group>"; };
-		5BAE842A2D1C84AE00C021F9 /* UIColorHex.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = UIColorHex.m; sourceTree = "<group>"; };
-		5BAE842C2D1C9FDB00C021F9 /* Throwback.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = Throwback.storyboard; sourceTree = "<group>"; };
 		5BB5D72F2D19529800C54C0A /* Discord.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Discord.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5BB5D7342D19545B00C54C0A /* privateGuildLogo.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = privateGuildLogo.png; path = ../privateGuildLogo.png; sourceTree = "<group>"; };
 		5BB5D7352D19545B00C54C0A /* privateGuildLogo@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; name = "privateGuildLogo@2x.png"; path = "../privateGuildLogo@2x.png"; sourceTree = "<group>"; };
@@ -426,7 +417,6 @@
 		5B21047D2D185409005B9596 /* Libraries */ = {
 			isa = PBXGroup;
 			children = (
-				5BAE84282D1C849E00C021F9 /* UIColor+Hex */,
 				5B21047E2D185409005B9596 /* APLSlideMenu */,
 				5B2104832D185409005B9596 /* BButton */,
 				5B21048C2D185409005B9596 /* Emojize */,
@@ -521,7 +511,6 @@
 			children = (
 				5B2104B32D185680005B9596 /* Storyboard.storyboard */,
 				5B2105AA2D185CDC005B9596 /* iOS-7.storyboard */,
-				5BAE842C2D1C9FDB00C021F9 /* Throwback.storyboard */,
 			);
 			path = Storyboards;
 			sourceTree = "<group>";
@@ -541,7 +530,6 @@
 		5B2104BE2D1856E5005B9596 /* Images */ = {
 			isa = PBXGroup;
 			children = (
-				5B3890DE2D1C7A05002D3BBE /* Profile Page */,
 				5BB5D7402D195B0C00C54C0A /* Guild Cell */,
 				5B2105B72D18642A005B9596 /* Missed Call */,
 				5B2105512D18570D005B9596 /* Contactback.PNG */,
@@ -885,24 +873,6 @@
 			path = Test;
 			sourceTree = "<group>";
 		};
-		5B3890DE2D1C7A05002D3BBE /* Profile Page */ = {
-			isa = PBXGroup;
-			children = (
-				5B3890DF2D1C7A11002D3BBE /* pfpOverlay.png */,
-				5B3890E02D1C7A11002D3BBE /* pfpOverlay@2x.png */,
-			);
-			path = "Profile Page";
-			sourceTree = "<group>";
-		};
-		5BAE84282D1C849E00C021F9 /* UIColor+Hex */ = {
-			isa = PBXGroup;
-			children = (
-				5BAE84292D1C84AE00C021F9 /* UIColorHex.h */,
-				5BAE842A2D1C84AE00C021F9 /* UIColorHex.m */,
-			);
-			path = "UIColor+Hex";
-			sourceTree = "<group>";
-		};
 		5BB5D7402D195B0C00C54C0A /* Guild Cell */ = {
 			isa = PBXGroup;
 			children = (
@@ -946,7 +916,7 @@
 			attributes = {
 				CLASSPREFIX = DC;
 				LastUpgradeCheck = 0510;
-				ORGANIZATIONNAME = bag.xml;
+				ORGANIZATIONNAME = "Julian Triveri";
 			};
 			buildConfigurationList = 09C6B91A204A0F54007EAC26 /* Build configuration list for PBXProject "Discord Classic" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -973,7 +943,6 @@
 				5B21051D2D1856E5005B9596 /* BarButton@2x.png in Resources */,
 				5B3890DD2D1C54D8002D3BBE /* GuildIconBaseSelected.png in Resources */,
 				5B2105182D1856E5005B9596 /* Send.png in Resources */,
-				5B3890E12D1C7A11002D3BBE /* pfpOverlay.png in Resources */,
 				5B2104A72D185409005B9596 /* FontAwesome.ttf in Resources */,
 				5BB5D7372D19545B00C54C0A /* privateGuildLogo@2x.png in Resources */,
 				5B21054C2D1856E5005B9596 /* TbarBG@2x.png in Resources */,
@@ -986,7 +955,6 @@
 				5B2105252D1856E5005B9596 /* DefaultAvatar0@2x.png in Resources */,
 				5BB5D73A2D1956F700C54C0A /* bannerTopShadow.png in Resources */,
 				5B21054F2D1856E5005B9596 /* Video-play-button.png in Resources */,
-				5BAE842D2D1C9FDB00C021F9 /* Throwback.storyboard in Resources */,
 				5B21053B2D1856E5005B9596 /* PLVideoOverlayPlay@2x.png in Resources */,
 				5B2105B92D186432005B9596 /* TestCallEmbed.png in Resources */,
 				5B21050D2D1856E5005B9596 /* Border.png in Resources */,
@@ -1040,7 +1008,6 @@
 				5B2105172D1856E5005B9596 /* preferences@2x.png in Resources */,
 				5B2105332D1856E5005B9596 /* DirectMessages@2x.png in Resources */,
 				5B2105412D1856E5005B9596 /* bag-xml.png in Resources */,
-				5B3890E22D1C7A11002D3BBE /* pfpOverlay@2x.png in Resources */,
 				5B2104BA2D1856A7005B9596 /* DCChatGroupedTableCell.xib in Resources */,
 				5B2105342D1856E5005B9596 /* menu.png in Resources */,
 				5BB5D7362D19545B00C54C0A /* privateGuildLogo.png in Resources */,
@@ -1128,7 +1095,6 @@
 				5B21059E2D185B10005B9596 /* DCMenuViewController.m in Sources */,
 				5B2105982D185B10005B9596 /* DCChatVideoAttachment.m in Sources */,
 				5B21059C2D185B10005B9596 /* DCChannelListViewController.m in Sources */,
-				5BAE842B2D1C84AE00C021F9 /* UIColorHex.m in Sources */,
 				5B21059A2D185B10005B9596 /* DCViewController.m in Sources */,
 				5B2105972D185B10005B9596 /* DCChatTableCell.m in Sources */,
 				5B2105C22D18C116005B9596 /* DCGuildTableViewCell.m in Sources */,

@@ -3,7 +3,7 @@
 //  Discord Classic
 //
 //  Created by bag.xml on 27/01/24.
-//  Copyright (c) 2024 bag.xml. All rights reserved.
+//  Copyright (c) 2024 Julian Triveri. All rights reserved.
 //
 
 #import "DCMenuViewController.h"
@@ -37,14 +37,29 @@
     //pns observers
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(handleNotificationTap:) name:@"NavigateToChannel" object:nil];
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(exitedChatController) name:@"ChannelSelectionCleared" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handlePresenceRefresh)
+                                                 name:@"USER_PRESENCE_UPDATED"
+                                               object:nil];
     //NOTIF OBSERVERS END
+    
+    //TOOLBAR IMAGE LOGIC
+    UIImage *toolbarBGImage = [UIImage imageNamed:@"ToolbarBG"];
+    
+    [self.toolbar setBackgroundImage:toolbarBGImage forToolbarPosition:UIToolbarPositionAny barMetrics:UIBarMetricsDefault];
+    //toolbar image logic end
 }
 
 
 //block that handles what the app does if you open it via a push ntoification
 
+- (void)handlePresenceRefresh {
+    // This will force the channel list table to re-fetch each DM buddy’s status from loadedUsers
+    [self.channelTableView reloadData];
+}
 
 - (void)handleNotificationTap:(NSNotification *)notification {
+    //NSLog(@"HANDLE NOTIFICATION TAP CALLED");
     NSString *channelId = notification.userInfo[@"channelId"];
     if (channelId) {
         //NSLog(@"Navigating to channel with ID: %@", channelId);
@@ -161,19 +176,13 @@
 		self.selectedGuild = [DCServerCommunicator.sharedInstance.guilds objectAtIndex:indexPath.row];
         [tableView deselectRowAtIndexPath:indexPath animated:YES];
         if(self.selectedGuild.banner == nil) {
-            self.guildBanner.image = [UIImage imageNamed:@"No-Header"];
+            self.guildBanner.image = [UIImage imageNamed:@"ServerBanner"];
         } else {
             self.guildBanner.image = self.selectedGuild.banner;
         }
         [self.navigationItem setTitle:self.selectedGuild.name];
         self.guildLabel.text = self.selectedGuild.name;
 		[self.channelTableView reloadData];
-        if (self.guildLabel && [self.guildLabel.text isEqualToString:@"Direct Messages"]) {
-            self.totalView.hidden = YES;
-        } else {
-            self.totalView.hidden = NO;
-        }
-
 	}
     
     if(tableView == self.channelTableView){
@@ -216,8 +225,6 @@
         // Guild name and icon
         [cell.guildAvatar setImage:guildAtRowIndex.icon];
         
-        // Set the frame for the image view (if not already set)
-        
         cell.guildAvatar.layer.cornerRadius = cell.guildAvatar.frame.size.width / 6.0;
         cell.guildAvatar.layer.masksToBounds = YES;
         
@@ -229,35 +236,63 @@
         if (cell == nil) {
             cell = [[DCChannelViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"channel"];
         }
+        
         DCChannel *channelAtRowIndex = [self.selectedGuild.channels objectAtIndex:indexPath.row];
         cell.messageIndicator.hidden = !channelAtRowIndex.unread;
         [cell.channelName setText:channelAtRowIndex.name];
         
+        // Presence indicator logic for DM channels (type 1)
+        if (channelAtRowIndex.type == 1) {
+            DCUser *buddy = nil;
+            
+            // Loop through users to find the DM partner
+            for (NSDictionary *userDict in channelAtRowIndex.users) {
+                NSString *userId = [userDict valueForKey:@"snowflake"];
+                
+                if (![userId isEqualToString:DCServerCommunicator.sharedInstance.snowflake]) {
+                    buddy = [DCServerCommunicator.sharedInstance.loadedUsers objectForKey:userId];
+                    
+                    if (buddy) {
+                        //NSLog(@"[Presence] Found buddy: %@ (ID: %@, Status: %@)", buddy.username, buddy.snowflake, buddy.status);
+                    } else {
+                        //NSLog(@"[Presence] User with ID %@ not found in loadedUsers.", userId);
+                    }
+                    
+                    break;
+                }
+            }
+            
+            if (buddy) {
+                // Get the color for the user's current status
+                UIColor *dotColor = [self colorForUserStatus:buddy.status ?: @"offline"];
+                cell.activityIndicatorLed.image = [self drawStatusDotWithColor:dotColor];
+                //NSLog(@"[Presence] Status dot color for %@: %@", buddy.username, dotColor);
+            } else {
+                // Default to gray if user is not found
+                //NSLog(@"[Presence] No buddy found, defaulting to gray.");
+                cell.activityIndicatorLed.image = [self drawStatusDotWithColor:[UIColor grayColor]];
+            }
+        } else {
+            // Non-DM channels do not need a status indicator
+            cell.activityIndicatorLed.image = nil;
+        }
+        
         return cell;
     }
-    
-    return nil; // Default case (shouldn't happen in your scenario)
 }
 
 
-- (void)handleMeRequest {
-    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-        NSURL* userProfileURL = [NSURL URLWithString: [NSString stringWithFormat:@"https://discordapp.com/api/v9/users/@me"]];
-        NSMutableURLRequest *urlRequest = [NSMutableURLRequest requestWithURL:userProfileURL cachePolicy:NSURLRequestReloadIgnoringLocalCacheData timeoutInterval:15];
-        [urlRequest setValue:@"no-store" forHTTPHeaderField:@"Cache-Control"];
-        [urlRequest addValue:DCServerCommunicator.sharedInstance.token forHTTPHeaderField:@"Authorization"];
-        [urlRequest addValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        NSHTTPURLResponse *responseCode = nil;
-        
-        NSError *error = nil;
-        NSData *response = [DCTools checkData:[NSURLConnection sendSynchronousRequest:urlRequest returningResponse:&responseCode error:&error] withError:error];
-        if(response){
-            NSDictionary* parsedResponse = [NSJSONSerialization JSONObjectWithData:response options:0 error:&error];
-            NSLog(@"%@", parsedResponse);
-        }
-    });
+/*- (void)tableView:(UITableView *)tableView willDisplayCell:(DCGuildTableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath{
+    // make guild icons a fixed size
+    if(tableView == self.guildTableView) {
+    cell.guildAvatar.frame = CGRectMake(0, 0, 32, 32);
+    cell.guildAvatar.layer.cornerRadius = cell.imageView.frame.size.height / 4.0;
+    cell.guildAvatar.layer.masksToBounds = YES;
+    [cell.guildAvatar setNeedsDisplay];
+    [cell layoutIfNeeded];
+    }
 }
-
+*/
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
 	return 1;
 }
@@ -298,4 +333,33 @@
     }
 }
 //SEGUE END
+
+- (UIImage *)drawStatusDotWithColor:(UIColor *)color {
+    CGFloat dotSize = 14.0;
+    CGRect rect = CGRectMake(0.0, 0.0, dotSize, dotSize);
+    
+    UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    CGContextSetFillColorWithColor(context, color.CGColor);
+    CGContextFillEllipseInRect(context, rect);
+    
+    UIImage *statusDot = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return statusDot;
+}
+
+- (UIColor *)colorForUserStatus:(NSString *)status {
+    if ([status isEqualToString:@"online"]) {
+        return [UIColor colorWithRed:0.0 green:1.0 blue:0.0 alpha:1.0];  // Green
+    } else if ([status isEqualToString:@"dnd"]) {
+        return [UIColor colorWithRed:1.0 green:0.0 blue:0.0 alpha:1.0];  // Red
+    } else if ([status isEqualToString:@"idle"]) {
+        return [UIColor colorWithRed:1.0 green:0.65 blue:0.0 alpha:1.0]; // Orange
+    } else {
+        return [UIColor colorWithWhite:0.6 alpha:1.0];  // Gray (offline)
+    }
+}
+
 @end

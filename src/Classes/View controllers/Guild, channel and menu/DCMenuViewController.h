@@ -3,7 +3,7 @@
 //  Discord Classic
 //
 //  Created by bag.xml on 27/01/24.
-//  Copyright (c) 2024 bag.xml. All rights reserved.
+//  Copyright (c) 2024 Julian Triveri. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -30,9 +30,6 @@
 @property (weak, nonatomic) IBOutlet UIToolbar *toolbar;
 @property (weak, nonatomic) IBOutlet UILabel *guildLabel;
 @property (weak, nonatomic) IBOutlet UIImageView *guildBanner;
-
-@property (weak, nonatomic) IBOutlet UIView *totalView;
-
 
 @property NSOperationQueue* serverIconImageQueue;
 

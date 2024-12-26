@@ -2,8 +2,8 @@
 //  DCServerCommunicator.h
 //  Discord Classic
 //
-//  Created by bag.xml on 3/4/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/4/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

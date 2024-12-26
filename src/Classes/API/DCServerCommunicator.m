@@ -2,8 +2,8 @@
 //  DCServerCommunicator.m
 //  Discord Classic
 //
-//  Created by bag.xml on 3/4/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/4/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import "DCServerCommunicator.h"
@@ -156,6 +156,7 @@ UIActivityIndicatorView *spinner;
 			
 			//Parse JSON to a dictionary
 			NSDictionary *parsedJsonResponse = [DCTools parseJSON:responseString];
+            //NSLog(responseString);
 			
 			//Data values for easy access
 			int op = [[parsedJsonResponse valueForKey:@"op"] integerValue];
@@ -271,6 +272,7 @@ UIActivityIndicatorView *spinner;
                             privateGuild.icon = [UIImage imageNamed:@"privateGuildLogo"];
                             privateGuild.channels = NSMutableArray.new;
                             
+                            
                             for(NSDictionary* privateChannel in [d valueForKey:@"private_channels"]){
                                 
                                 //this may actually suck
@@ -295,7 +297,16 @@ UIActivityIndicatorView *spinner;
                                             [usersDict setObject:[user valueForKey:@"avatar"] forKey:@"avatar"];
                                             [usersDict setObject:[user valueForKey:@"id"] forKey:@"snowflake"];
                                             [users addObject:usersDict];
+                                            
+                                            // Ensure user is added to loadedUsers
+                                            NSString *userId = [user valueForKey:@"id"];
+                                            if (userId && ![weakSelf.loadedUsers objectForKey:userId]) {
+                                                DCUser *dcUser = [DCTools convertJsonUser:user cache:YES]; // Add to loadedUsers
+                                                [weakSelf.loadedUsers setObject:dcUser forKey:userId];
+                                                NSLog(@"[READY] Cached user: %@ (ID: %@)", dcUser.username, dcUser.snowflake);
+                                            }
                                         }
+
                                         // Add self to users list
                                         usersDict = NSMutableDictionary.new;
                                         [usersDict setObject:[NSString stringWithFormat:@"You"] forKey:@"username"];
@@ -400,6 +411,23 @@ UIActivityIndicatorView *spinner;
                                                     UIGraphicsEndImageContext();
                                                 }
                                                 
+                                                // Process user presences from READY payload
+                                                NSArray *presences = [d valueForKey:@"presences"];
+                                                for (NSDictionary *presence in presences) {
+                                                    NSString *userId = [presence valueForKeyPath:@"user.id"];
+                                                    NSString *status = [presence valueForKey:@"status"];
+                                                    
+                                                    if (userId && status) {
+                                                        DCUser *user = [weakSelf.loadedUsers objectForKey:userId];
+                                                        if (user) {
+                                                            user.status = status;
+                                                            //NSLog(@"[READY] Updated user %@ (ID: %@) to status: %@", user.username, userId, user.status);
+                                                        } else {
+                                                            //NSLog(@"[READY] Presence received for unknown user ID: %@", userId);
+                                                        }
+                                                    }
+                                                }
+                                                
                                             }];
                                         }
                                     }
@@ -474,6 +502,34 @@ UIActivityIndicatorView *spinner;
                             //});
                         });
 					}
+                    
+                    if ([t isEqualToString:@"PRESENCE_UPDATE"]) {
+                        NSString *userId = [d valueForKeyPath:@"user.id"];
+                        NSString *status = [d valueForKey:@"status"];
+                        
+                        if (userId && status) {
+                            DCUser *user = [weakSelf.loadedUsers objectForKey:userId];
+                            if (user) {
+                                user.status = status;
+                                //NSLog(@"[PRESENCE_UPDATE] Updated user %@ (ID: %@) to status: %@", user.username, userId, user.status);
+                            } else {
+                                // Cache user if not already in loadedUsers
+                                NSDictionary *userDict = [d valueForKey:@"user"];
+                                if (userDict) {
+                                    user = [DCTools convertJsonUser:userDict cache:YES];
+                                    [weakSelf.loadedUsers setObject:user forKey:userId];
+                                    user.status = status;
+                                    //NSLog(@"[PRESENCE_UPDATE] Cached and updated user %@ (ID: %@) to status: %@", user.username, userId, user.status);
+                                }
+                            }
+                            
+                            // IMPORTANT: Post a notification so we can refresh DM status dots
+                            [NSNotificationCenter.defaultCenter postNotificationName:@"USER_PRESENCE_UPDATED" object:nil];
+                        }
+                        else {
+                            //NSLog(@"[PRESENCE_UPDATE] Missing user ID or status in payload: %@", d);
+                        }
+                    }
 					
 					if([t isEqualToString:@"RESUMED"]){
 						weakSelf.didAuthenticate = true;

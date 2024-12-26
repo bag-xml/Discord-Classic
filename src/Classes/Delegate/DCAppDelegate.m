@@ -2,8 +2,8 @@
 //  DCAppDelegate.m
 //  Discord Classic
 //
-//  Created by bag.xml on 3/2/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/2/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import "DCAppDelegate.h"
@@ -25,17 +25,8 @@
         self.window.rootViewController = initialViewController;
         [self.window makeKeyAndVisible];
     } else if(VERSION_MIN(@"6.0")) {
-        bool hackyMode = [[NSUserDefaults standardUserDefaults] boolForKey:@"hackyMode"];
-        
-        if(hackyMode == true) {
-            UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Throwback" bundle:nil];
-            UIViewController *initialViewController = [storyboard instantiateInitialViewController];
-            self.window.rootViewController = initialViewController;
-            [self.window makeKeyAndVisible];
-        } else {
-            [UINavigationBar.appearance setBackgroundImage:[UIImage imageNamed:@"TbarBG"] forBarMetrics:UIBarMetricsDefault];
-        }
-        
+        //UI
+        [UINavigationBar.appearance setBackgroundImage:[UIImage imageNamed:@"TbarBG"] forBarMetrics:UIBarMetricsDefault];
     }
     
     NSURLCache *urlCache = [[NSURLCache alloc] initWithMemoryCapacity:1024*1024*8  // 8MB mem cache

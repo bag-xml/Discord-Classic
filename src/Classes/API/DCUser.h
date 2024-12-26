@@ -3,7 +3,7 @@
 //  Discord Classic
 //
 //  Created by Trevir on 11/17/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -17,6 +17,7 @@
 @property UIImage* profileBanner;
 @property NSString* discriminator;
 @property UIImage* avatarDecoration;
+@property (strong, nonatomic) NSString *status;
 
 +(NSArray *)defaultAvatars;
 

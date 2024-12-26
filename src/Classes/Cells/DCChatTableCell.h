@@ -2,8 +2,8 @@
 //  DCChatTableCell.h
 //  Discord Classic
 //
-//  Created by bag.xml on 4/7/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 4/7/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

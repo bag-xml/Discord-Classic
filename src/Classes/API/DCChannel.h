@@ -2,8 +2,8 @@
 //  DCChannel.h
 //  Discord Classic
 //
-//  Created by bag.xml on 3/12/18.
-//  Copyright (c) 2018 bag.xml. All rights reserved.
+//  Created by Julian Triveri on 3/12/18.
+//  Copyright (c) 2018 Julian Triveri. All rights reserved.
 //
 
 /*DCChannel is a representation of a Discord API Channel object.
