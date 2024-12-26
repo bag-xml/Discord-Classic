@@ -17,6 +17,8 @@
 		2CEBF29A2AE2FE4500EC7812 /* MediaPlayer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CEBF2992AE2FE4500EC7812 /* MediaPlayer.framework */; };
 		2CF920112AF7F17B00249D6A /* QuickLook.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CF920102AF7F17B00249D6A /* QuickLook.framework */; };
 		2CF9205D2B02CAB700249D6A /* AssetsLibrary.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2CF9205C2B02CAB700249D6A /* AssetsLibrary.framework */; };
+		349F9ADE2D1DB10700B77430 /* statusIndicator@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 349F9ADC2D1DB10700B77430 /* statusIndicator@2x.png */; };
+		349F9ADF2D1DB10700B77430 /* statusIndicator.png in Resources */ = {isa = PBXBuildFile; fileRef = 349F9ADD2D1DB10700B77430 /* statusIndicator.png */; };
 		5B21047C2D185402005B9596 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 5B21047A2D185402005B9596 /* Settings.bundle */; };
 		5B2104A32D185409005B9596 /* APLSlideMenuSegue.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B2104802D185409005B9596 /* APLSlideMenuSegue.m */; };
 		5B2104A42D185409005B9596 /* APLSlideMenuViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 5B2104822D185409005B9596 /* APLSlideMenuViewController.m */; };
@@ -162,6 +164,8 @@
 		2CEBF2992AE2FE4500EC7812 /* MediaPlayer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MediaPlayer.framework; path = System/Library/Frameworks/MediaPlayer.framework; sourceTree = SDKROOT; };
 		2CF920102AF7F17B00249D6A /* QuickLook.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickLook.framework; path = System/Library/Frameworks/QuickLook.framework; sourceTree = SDKROOT; };
 		2CF9205C2B02CAB700249D6A /* AssetsLibrary.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AssetsLibrary.framework; path = System/Library/Frameworks/AssetsLibrary.framework; sourceTree = SDKROOT; };
+		349F9ADC2D1DB10700B77430 /* statusIndicator@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "statusIndicator@2x.png"; sourceTree = "<group>"; };
+		349F9ADD2D1DB10700B77430 /* statusIndicator.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = statusIndicator.png; sourceTree = "<group>"; };
 		5B21047A2D185402005B9596 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		5B21047F2D185409005B9596 /* APLSlideMenuSegue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = APLSlideMenuSegue.h; sourceTree = "<group>"; };
 		5B2104802D185409005B9596 /* APLSlideMenuSegue.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = APLSlideMenuSegue.m; sourceTree = "<group>"; };
@@ -876,6 +880,8 @@
 		5BB5D7402D195B0C00C54C0A /* Guild Cell */ = {
 			isa = PBXGroup;
 			children = (
+				349F9ADC2D1DB10700B77430 /* statusIndicator@2x.png */,
+				349F9ADD2D1DB10700B77430 /* statusIndicator.png */,
 				5B3890DC2D1C54D8002D3BBE /* GuildIconBaseSelected.png */,
 				5B3890DA2D1C53CB002D3BBE /* GuildIconBase.png */,
 				5BB5D7412D195B3400C54C0A /* newMessages.png */,
@@ -984,6 +990,7 @@
 				5B2105212D1856E5005B9596 /* NavigationButton@2x.png in Resources */,
 				5B21047C2D185402005B9596 /* Settings.bundle in Resources */,
 				5B2105522D18570D005B9596 /* Contactback.PNG in Resources */,
+				349F9ADE2D1DB10700B77430 /* statusIndicator@2x.png in Resources */,
 				5B2105472D1856E5005B9596 /* DescIntroducer@2x.png in Resources */,
 				5B2105142D1856E5005B9596 /* CBarButtonMap@2x.png in Resources */,
 				5B2105352D1856E5005B9596 /* menu@2x.png in Resources */,
@@ -1028,6 +1035,7 @@
 				5B2105432D1856E5005B9596 /* commandbar-bg@2x.png in Resources */,
 				5B2105232D1856E5005B9596 /* NavigationButtonPressed@2x.png in Resources */,
 				5B2105452D1856E5005B9596 /* ContactsBar@2x.png in Resources */,
+				349F9ADF2D1DB10700B77430 /* statusIndicator.png in Resources */,
 				5B21051A2D1856E5005B9596 /* Sidebar_glyph.png in Resources */,
 				5B21054E2D1856E5005B9596 /* ToolbarBG@2x.png in Resources */,
 				5B2105442D1856E5005B9596 /* ContactsBar.png in Resources */,

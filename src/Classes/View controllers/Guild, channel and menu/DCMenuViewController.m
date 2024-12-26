@@ -251,13 +251,6 @@
                 
                 if (![userId isEqualToString:DCServerCommunicator.sharedInstance.snowflake]) {
                     buddy = [DCServerCommunicator.sharedInstance.loadedUsers objectForKey:userId];
-                    
-                    if (buddy) {
-                        //NSLog(@"[Presence] Found buddy: %@ (ID: %@, Status: %@)", buddy.username, buddy.snowflake, buddy.status);
-                    } else {
-                        //NSLog(@"[Presence] User with ID %@ not found in loadedUsers.", userId);
-                    }
-                    
                     break;
                 }
             }
@@ -265,12 +258,16 @@
             if (buddy) {
                 // Get the color for the user's current status
                 UIColor *dotColor = [self colorForUserStatus:buddy.status ?: @"offline"];
-                cell.activityIndicatorLed.image = [self drawStatusDotWithColor:dotColor];
-                //NSLog(@"[Presence] Status dot color for %@: %@", buddy.username, dotColor);
+                
+                // Load and colorize the image based on the user's status
+                UIImage *coloredImage = [self loadAndTintImageWithColor:dotColor];
+                
+                // Set the colored image as the activity indicator
+                cell.activityIndicatorLed.image = coloredImage;
             } else {
                 // Default to gray if user is not found
-                //NSLog(@"[Presence] No buddy found, defaulting to gray.");
-                cell.activityIndicatorLed.image = [self drawStatusDotWithColor:[UIColor grayColor]];
+                UIImage *coloredImage = [self loadAndTintImageWithColor:[UIColor grayColor]];
+                cell.activityIndicatorLed.image = coloredImage;
             }
         } else {
             // Non-DM channels do not need a status indicator
@@ -280,7 +277,6 @@
         return cell;
     }
 }
-
 
 /*- (void)tableView:(UITableView *)tableView willDisplayCell:(DCGuildTableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath{
     // make guild icons a fixed size
@@ -334,20 +330,55 @@
 }
 //SEGUE END
 
-- (UIImage *)drawStatusDotWithColor:(UIColor *)color {
-    CGFloat dotSize = 14.0;
-    CGRect rect = CGRectMake(0.0, 0.0, dotSize, dotSize);
+- (UIImage *)loadAndTintImageWithColor:(UIColor *)color {
+    NSString *imageName = @"statusIndicator";
+    UIImage *image = [UIImage imageNamed:imageName];
     
-    UIGraphicsBeginImageContextWithOptions(rect.size, NO, 0.0);
+    // Begin a new image context to colorize the image
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+    
     CGContextRef context = UIGraphicsGetCurrentContext();
     
-    CGContextSetFillColorWithColor(context, color.CGColor);
-    CGContextFillEllipseInRect(context, rect);
+    // Flip the context, images are drawn upside down by default in UIKit, thanks ChagGPT for this
+    CGContextTranslateCTM(context, 0.0, image.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);
     
-    UIImage *statusDot = UIGraphicsGetImageFromCurrentImageContext();
+    [color setFill];
+    
+    CGContextDrawImage(context, CGRectMake(0.0, 0.0, image.size.width, image.size.height), image.CGImage);
+    
+    // Apply the color over the image using the blend mode (this will tint the image), also thanks gpt
+    CGContextSetBlendMode(context, kCGBlendModeSourceIn);
+    CGContextFillRect(context, CGRectMake(0.0, 0.0, image.size.width, image.size.height));
+    
+    UIImage *coloredImage = UIGraphicsGetImageFromCurrentImageContext();
     UIGraphicsEndImageContext();
     
-    return statusDot;
+    return coloredImage;
+}
+
+- (UIImage *)colorizeImage:(UIImage *)image withColor:(UIColor *)color {
+    // Create an image context with the size of the original image
+    UIGraphicsBeginImageContextWithOptions(image.size, NO, image.scale);
+    CGContextRef context = UIGraphicsGetCurrentContext();
+    
+    // Set the fill color (the desired color for the status indicator)
+    CGContextTranslateCTM(context, 0, image.size.height);
+    CGContextScaleCTM(context, 1.0, -1.0);  // Flip the context
+    
+    // Set blend mode to apply the color over the original image
+    CGContextSetBlendMode(context, kCGBlendModeSourceIn);
+    CGContextDrawImage(context, CGRectMake(0, 0, image.size.width, image.size.height), image.CGImage);
+    
+    // Apply the color filter
+    [color setFill];
+    CGContextFillRect(context, CGRectMake(0, 0, image.size.width, image.size.height));
+    
+    // Get the colorized image from the context
+    UIImage *colorizedImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    return colorizedImage;
 }
 
 - (UIColor *)colorForUserStatus:(NSString *)status {
