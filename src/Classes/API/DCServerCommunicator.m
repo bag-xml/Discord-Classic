@@ -303,7 +303,7 @@ UIActivityIndicatorView *spinner;
                                             if (userId && ![weakSelf.loadedUsers objectForKey:userId]) {
                                                 DCUser *dcUser = [DCTools convertJsonUser:user cache:YES]; // Add to loadedUsers
                                                 [weakSelf.loadedUsers setObject:dcUser forKey:userId];
-                                                NSLog(@"[READY] Cached user: %@ (ID: %@)", dcUser.username, dcUser.snowflake);
+                                                //NSLog(@"[READY] Cached user: %@ (ID: %@)", dcUser.username, dcUser.snowflake);
                                             }
                                         }
 
