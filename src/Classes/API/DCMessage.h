@@ -26,7 +26,7 @@
 @property int messageType;
 @property DCMessage* referencedMessage;
 
-//embed
+// embed
 //@property NSString *
 - (void)deleteMessage;
 - (BOOL)isEqual:(id)other;
