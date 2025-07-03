@@ -8,9 +8,10 @@
 @implementation APLSlideMenuLeftMenuSegue
 
 - (void)perform {
-    APLSlideMenuViewController* slideMenuViewController = self.sourceViewController;
+    APLSlideMenuViewController* slideMenuViewController =
+        self.sourceViewController;
     UIViewController* leftMenuViewController = self.destinationViewController;
-    
+
     slideMenuViewController.leftMenuViewController = leftMenuViewController;
 }
 
@@ -20,9 +21,10 @@
 @implementation APLSlideMenuRightMenuSegue
 
 - (void)perform {
-    APLSlideMenuViewController* slideMenuViewController = self.sourceViewController;
+    APLSlideMenuViewController* slideMenuViewController =
+        self.sourceViewController;
     UIViewController* rightMenuViewController = self.destinationViewController;
-    
+
     slideMenuViewController.rightMenuViewController = rightMenuViewController;
 }
 
@@ -32,9 +34,10 @@
 @implementation APLSlideMenuContentSegue
 
 - (void)perform {
-    APLSlideMenuViewController* slideMenuViewController = self.sourceViewController;
+    APLSlideMenuViewController* slideMenuViewController =
+        self.sourceViewController;
     UIViewController* contentViewController = self.destinationViewController;
-    
+
     slideMenuViewController.contentViewController = contentViewController;
 }
 

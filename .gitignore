@@ -67,3 +67,12 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+
+# theos
+src/.theos
+src/Theos/*
+!src/Theos/.gitkeep
+src/a
+a
+.clangd
+src/packages

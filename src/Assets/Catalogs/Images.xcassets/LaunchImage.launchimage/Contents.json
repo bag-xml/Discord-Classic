@@ -1,54 +1,54 @@
 {
-  "images" : [
+  "images": [
     {
-      "orientation" : "portrait",
-      "idiom" : "iphone",
-      "extent" : "full-screen",
-      "filename" : "LaunchImage.png",
-      "scale" : "1x"
+      "orientation": "portrait",
+      "idiom": "iphone",
+      "extent": "full-screen",
+      "filename": "LaunchImage.png",
+      "scale": "1x"
     },
     {
-      "orientation" : "portrait",
-      "idiom" : "iphone",
-      "extent" : "full-screen",
-      "filename" : "LaunchImage-3.5inch-Retina.png",
-      "scale" : "2x"
+      "orientation": "portrait",
+      "idiom": "iphone",
+      "extent": "full-screen",
+      "filename": "LaunchImage-3.5inch-Retina.png",
+      "scale": "2x"
     },
     {
-      "orientation" : "portrait",
-      "idiom" : "iphone",
-      "extent" : "full-screen",
-      "filename" : "LaunchImage-4inch-Retina.png",
-      "subtype" : "retina4",
-      "scale" : "2x"
+      "orientation": "portrait",
+      "idiom": "iphone",
+      "extent": "full-screen",
+      "filename": "LaunchImage-4inch-Retina.png",
+      "subtype": "retina4",
+      "scale": "2x"
     },
     {
-      "orientation" : "portrait",
-      "idiom" : "ipad",
-      "extent" : "to-status-bar",
-      "scale" : "1x"
+      "orientation": "portrait",
+      "idiom": "ipad",
+      "extent": "to-status-bar",
+      "scale": "1x"
     },
     {
-      "orientation" : "landscape",
-      "idiom" : "ipad",
-      "extent" : "to-status-bar",
-      "scale" : "1x"
+      "orientation": "landscape",
+      "idiom": "ipad",
+      "extent": "to-status-bar",
+      "scale": "1x"
     },
     {
-      "orientation" : "portrait",
-      "idiom" : "ipad",
-      "extent" : "to-status-bar",
-      "scale" : "2x"
+      "orientation": "portrait",
+      "idiom": "ipad",
+      "extent": "to-status-bar",
+      "scale": "2x"
     },
     {
-      "orientation" : "landscape",
-      "idiom" : "ipad",
-      "extent" : "to-status-bar",
-      "scale" : "2x"
+      "orientation": "landscape",
+      "idiom": "ipad",
+      "extent": "to-status-bar",
+      "scale": "2x"
     }
   ],
-  "info" : {
-    "version" : 1,
-    "author" : "xcode"
+  "info": {
+    "version": 1,
+    "author": "xcode"
   }
 }
