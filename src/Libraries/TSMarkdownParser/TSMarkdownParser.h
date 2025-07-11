@@ -7,9 +7,14 @@
 //
 
 #import <Foundation/Foundation.h>
+#include <UIKit/UIKit.h>
 
-typedef void (^TSMarkdownParserMatchBlock)(NSTextCheckingResult *match, NSMutableAttributedString *attributedString);
-typedef void (^TSMarkdownParserFormattingBlock)(NSMutableAttributedString *attributedString, NSRange range);
+typedef void (^TSMarkdownParserMatchBlock)(
+    NSTextCheckingResult *match, NSMutableAttributedString *attributedString
+);
+typedef void (^TSMarkdownParserFormattingBlock)(
+    NSMutableAttributedString *attributedString, NSRange range
+);
 
 @interface TSMarkdownParser : NSObject
 
@@ -34,32 +39,47 @@ typedef void (^TSMarkdownParserFormattingBlock)(NSMutableAttributedString *attri
 
 - (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown;
 
-- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown attributes:(NSDictionary *)attributes;
+- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown
+                                          attributes:(NSDictionary *)attributes;
 
-- (NSAttributedString *)attributedStringFromAttributedMarkdownString:(NSAttributedString *)attributedString;
+- (NSAttributedString *)attributedStringFromAttributedMarkdownString:
+    (NSAttributedString *)attributedString;
 
-- (void)addParsingRuleWithRegularExpression:(NSRegularExpression *)regularExpression withBlock:(TSMarkdownParserMatchBlock)block;
+- (void
+)addParsingRuleWithRegularExpression:(NSRegularExpression *)regularExpression
+                           withBlock:(TSMarkdownParserMatchBlock)block;
 
-- (void)addParagraphParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addParagraphParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                               )formattingBlock;
 
 /* block parsing */
 
-- (void)addHeaderParsingWithLevel:(int)header formattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addHeaderParsingWithLevel:(int)header
+                  formattingBlock:(TSMarkdownParserFormattingBlock
+                                  )formattingBlock;
 
-- (void)addListParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addListParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                          )formattingBlock;
 
 /* bracket parsing */
 
-- (void)addImageParsingWithImageFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock alternativeTextFormattingBlock:(TSMarkdownParserFormattingBlock)alternativeFormattingBlock;
+- (void)addImageParsingWithImageFormattingBlock:(TSMarkdownParserFormattingBlock
+                                                )formattingBlock
+                 alternativeTextFormattingBlock:(TSMarkdownParserFormattingBlock
+                                                )alternativeFormattingBlock;
 
-- (void)addLinkParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addLinkParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                          )formattingBlock;
 
 /* inline parsing */
 
-- (void)addMonospacedParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addMonospacedParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                                )formattingBlock;
 
-- (void)addStrongParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addStrongParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                            )formattingBlock;
 
-- (void)addEmphasisParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock)formattingBlock;
+- (void)addEmphasisParsingWithFormattingBlock:(TSMarkdownParserFormattingBlock
+                                              )formattingBlock;
 
 @end

@@ -7,10 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "DCTools.h"
 #import "DCServerCommunicator.h"
+#import "DCTools.h"
 
-@interface DCAppDelegate : UIResponder <UIApplicationDelegate>
+@interface DCAppDelegate : UIResponder<UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 

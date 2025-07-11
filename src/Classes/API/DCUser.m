@@ -10,23 +10,25 @@
 
 @implementation DCUser
 
-+ (NSArray *)defaultAvatars
-{
++ (NSArray *)defaultAvatars {
     static NSArray *_defaultAvatars;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        _defaultAvatars = @[[UIImage imageNamed:@"DefaultAvatar0"],
-                            [UIImage imageNamed:@"DefaultAvatar1"],
-                            [UIImage imageNamed:@"DefaultAvatar2"],
-                            [UIImage imageNamed:@"DefaultAvatar3"],
-                            [UIImage imageNamed:@"DefaultAvatar4"],
-                            [UIImage imageNamed:@"DefaultAvatar5"],
-                            ];
+        _defaultAvatars = @[
+            [UIImage imageNamed:@"DefaultAvatar0"],
+            [UIImage imageNamed:@"DefaultAvatar1"],
+            [UIImage imageNamed:@"DefaultAvatar2"],
+            [UIImage imageNamed:@"DefaultAvatar3"],
+            [UIImage imageNamed:@"DefaultAvatar4"],
+            [UIImage imageNamed:@"DefaultAvatar5"],
+        ];
     });
     return _defaultAvatars;
 }
 
--(NSString *)description{
-	return [NSString stringWithFormat:@"[User] Snowflake: %@, Username: %@, Display name %@", self.snowflake, self.username, self.globalName];
+- (NSString *)description {
+    return [NSString
+        stringWithFormat:@"[User] Snowflake: %@, Username: %@, Display name %@",
+                         self.snowflake, self.username, self.globalName];
 }
 @end

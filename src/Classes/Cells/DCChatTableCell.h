@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+
 #import "TSMarkdownParser.h"
 
 @interface DCChatTableCell : UITableViewCell

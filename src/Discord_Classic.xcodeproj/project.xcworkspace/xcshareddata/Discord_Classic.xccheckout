@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+	<dict>
+		<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+		<false />
+		<key>IDESourceControlProjectIdentifier</key>
+		<string>D6B645EB-70B1-4386-9A90-8F21A8123F13</string>
+		<key>IDESourceControlProjectName</key>
+		<string>Discord Classic</string>
+		<key>IDESourceControlProjectOriginsDictionary</key>
+		<dict>
+			<key>09BB8DC3-C725-4B60-8383-D8097658EDF2</key>
+			<string>https://github.com/bag-xml/Discord-Classic.git</string>
+		</dict>
+		<key>IDESourceControlProjectPath</key>
+		<string>src/Discord Classic.xcodeproj/project.xcworkspace</string>
+		<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+		<dict>
+			<key>09BB8DC3-C725-4B60-8383-D8097658EDF2</key>
+			<string>../../..</string>
+		</dict>
+		<key>IDESourceControlProjectURL</key>
+		<string>https://github.com/bag-xml/Discord-Classic.git</string>
+		<key>IDESourceControlProjectVersion</key>
+		<integer>110</integer>
+		<key>IDESourceControlProjectWCCIdentifier</key>
+		<string>09BB8DC3-C725-4B60-8383-D8097658EDF2</string>
+		<key>IDESourceControlProjectWCConfigurations</key>
+		<array>
+			<dict>
+				<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+				<string>public.vcs.git</string>
+				<key>IDESourceControlWCCIdentifierKey</key>
+				<string>09BB8DC3-C725-4B60-8383-D8097658EDF2</string>
+				<key>IDESourceControlWCCName</key>
+				<string>Discord-Classic</string>
+			</dict>
+		</array>
+	</dict>
+</plist>
