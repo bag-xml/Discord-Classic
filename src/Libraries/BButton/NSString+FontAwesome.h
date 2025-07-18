@@ -20,8 +20,9 @@
 //  http://creativecommons.org/licenses/by/3.0
 //
 //
-//  * Attribution is no longer required in Font Awesome 3.0, but much appreciated:
-//  "Font Awesome by Dave Gandy - http://fortawesome.github.com/Font-Awesome"
+//  * Attribution is no longer required in Font Awesome 3.0, but much
+//  appreciated: "Font Awesome by Dave Gandy -
+//  http://fortawesome.github.com/Font-Awesome"
 //
 //
 //  -----------------------------------------

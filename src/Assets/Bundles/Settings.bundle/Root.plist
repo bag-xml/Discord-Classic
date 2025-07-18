@@ -1,67 +1,73 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>PreferenceSpecifiers</key>
-	<array>
-		<dict>
-			<key>FooterText</key>
-			<string>Obtaining a token is essential for login, as this app doesn&apos;t yet support E-Mail + Password login.</string>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-			<key>Title</key>
-			<string>Account-related</string>
-		</dict>
-		<dict>
-			<key>AutocapitalizationType</key>
-			<string>None</string>
-			<key>AutocorrectionType</key>
-			<string>No</string>
-			<key>Type</key>
-			<string>PSTextFieldSpecifier</string>
-			<key>Title</key>
-			<string>Token</string>
-			<key>Key</key>
-			<string>token</string>
-		</dict>
-		<dict>
-			<key>FooterText</key>
-			<string>This option allows you to re-feel the old look of Discord Classic, or for you to opt out of the re-design if you prefer the old, more hacky, DIY-esque look of the older versions. If you&apos;re on a lower-end device this option will greatly benefit speed!</string>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-			<key>Title</key>
-			<string>Other options</string>
-		</dict>
-		<dict>
-			<key>Type</key>
-			<string>PSToggleSwitchSpecifier</string>
-			<key>Title</key>
-			<string>Opt Out</string>
-			<key>Key</key>
-			<string>hackyMode</string>
-			<key>DefaultValue</key>
-			<false/>
-		</dict>
-		<dict>
-			<key>FooterText</key>
-			<string>Wanna experience something a little out of the ordinary? This option allows you to see the new beta UI. Please keep in mind that bugs are prone to happen, and you should be prepared when using this mode.</string>
-			<key>Type</key>
-			<string>PSGroupSpecifier</string>
-			<key>Title</key>
-			<string></string>
-		</dict>
-		<dict>
-			<key>Type</key>
-			<string>PSToggleSwitchSpecifier</string>
-			<key>Title</key>
-			<string>Experimental Mode</string>
-			<key>Key</key>
-			<string>experimentalMode</string>
-			<key>DefaultValue</key>
-			<false/>
-		</dict>
-	</array>
-	<key>StringsTable</key>
-	<string>Root</string>
-</dict>
+	<dict>
+		<key>PreferenceSpecifiers</key>
+		<array>
+			<dict>
+				<key>FooterText</key>
+				<string>Obtaining a token is essential for login, as this app doesn&apos;t yet
+					support E-Mail + Password login.</string>
+				<key>Type</key>
+				<string>PSGroupSpecifier</string>
+				<key>Title</key>
+				<string>Account-related</string>
+			</dict>
+			<dict>
+				<key>AutocapitalizationType</key>
+				<string>None</string>
+				<key>AutocorrectionType</key>
+				<string>No</string>
+				<key>Type</key>
+				<string>PSTextFieldSpecifier</string>
+				<key>Title</key>
+				<string>Token</string>
+				<key>Key</key>
+				<string>token</string>
+			</dict>
+			<dict>
+				<key>FooterText</key>
+				<string>This option allows you to re-feel the old look of Discord Classic, or for
+					you to opt out of the re-design if you prefer the old, more hacky, DIY-esque
+					look of the older versions. If you&apos;re on a lower-end device this option
+					will greatly benefit speed!</string>
+				<key>Type</key>
+				<string>PSGroupSpecifier</string>
+				<key>Title</key>
+				<string>Other options</string>
+			</dict>
+			<dict>
+				<key>Type</key>
+				<string>PSToggleSwitchSpecifier</string>
+				<key>Title</key>
+				<string>Opt Out</string>
+				<key>Key</key>
+				<string>hackyMode</string>
+				<key>DefaultValue</key>
+				<false />
+			</dict>
+			<dict>
+				<key>FooterText</key>
+				<string>Wanna experience something a little out of the ordinary? This option allows
+					you to see the new beta UI. Please keep in mind that bugs are prone to happen,
+					and you should be prepared when using this mode.</string>
+				<key>Type</key>
+				<string>PSGroupSpecifier</string>
+				<key>Title</key>
+				<string></string>
+			</dict>
+			<dict>
+				<key>Type</key>
+				<string>PSToggleSwitchSpecifier</string>
+				<key>Title</key>
+				<string>Experimental Mode</string>
+				<key>Key</key>
+				<string>experimentalMode</string>
+				<key>DefaultValue</key>
+				<false />
+			</dict>
+		</array>
+		<key>StringsTable</key>
+		<string>Root</string>
+	</dict>
 </plist>

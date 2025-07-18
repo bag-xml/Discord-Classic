@@ -7,20 +7,21 @@
 //
 
 #import <Foundation/Foundation.h>
+#include <UIKit/UIKit.h>
 
 @interface DCUser : NSObject
 @property NSString* snowflake;
 @property NSString* username;
 @property NSString* globalName;
 @property NSString* biography;
-@property NSString *customStatus;
-@property NSString *status;
+@property NSString* customStatus;
+@property NSString* status;
 @property UIImage* profileImage;
 @property UIImage* profileBanner;
 @property NSString* discriminator;
 @property UIImage* avatarDecoration;
 
-+(NSArray *)defaultAvatars;
++ (NSArray*)defaultAvatars;
 
--(NSString *)description;
+- (NSString*)description;
 @end

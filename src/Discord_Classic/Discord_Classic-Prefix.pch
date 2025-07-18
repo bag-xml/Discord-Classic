@@ -1,0 +1,27 @@
+//
+// Prefix header for all source files of the 'Discord Classic' target in the 'Discord Classic' project
+//
+
+#import <Availability.h>
+
+#ifndef __IPHONE_5_0
+#warning "This project uses features only available in iOS SDK 5.0 and later."
+#endif
+
+#ifdef __OBJC__
+    #import <UIKit/UIKit.h>
+    #import <Foundation/Foundation.h>
+
+    // https://stackoverflow.com/a/11694878
+    // New Indexing
+    #import "NSDictionary+Indexing.h"
+    #import "NSArray+Indexing.h"
+
+    // Provided by James Webster on StackOverFlow
+    #if __has_feature(objc_bool) 
+    #undef YES 
+    #undef NO 
+    #define YES __objc_yes 
+    #define NO __objc_no 
+    #endif 
+#endif

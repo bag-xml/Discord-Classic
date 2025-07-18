@@ -1,86 +1,126 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="5056" systemVersion="13F1911" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="5056"
+    systemVersion="13F1911" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
     <dependencies>
-        <deployment version="1280" defaultVersion="1280" identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
+        <deployment version="1280" defaultVersion="1280" identifier="iOS" />
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733" />
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
-        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
-        <tableViewCell autoresizesSubviews="NO" contentMode="scaleAspectFit" selectionStyle="none" indentationWidth="10" reuseIdentifier="OldMode Reply Message Cell" rowHeight="82" id="37" customClass="DCChatTableCell">
-            <rect key="frame" x="0.0" y="0.0" width="320" height="82"/>
-            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="37" id="82r-n3-SXt">
-                <rect key="frame" x="0.0" y="0.0" width="320" height="81"/>
-                <autoresizingMask key="autoresizingMask"/>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" />
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder" />
+        <tableViewCell autoresizesSubviews="NO" contentMode="scaleAspectFit" selectionStyle="none"
+            indentationWidth="10" reuseIdentifier="OldMode Reply Message Cell" rowHeight="82"
+            id="37" customClass="DCChatTableCell">
+            <rect key="frame" x="0.0" y="0.0" width="320" height="82" />
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES" />
+            <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES"
+                multipleTouchEnabled="YES" contentMode="center" tableViewCell="37" id="82r-n3-SXt">
+                <rect key="frame" x="0.0" y="0.0" width="320" height="81" />
+                <autoresizingMask key="autoresizingMask" />
                 <subviews>
-                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" image="oldDiscord.png" id="99">
-                        <rect key="frame" x="0.0" y="22" width="47" height="47"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999" blue="0.3885722258" alpha="1" colorSpace="calibratedRGB"/>
+                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill"
+                        image="oldDiscord.png" id="99">
+                        <rect key="frame" x="0.0" y="22" width="47" height="47" />
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"
+                            flexibleMaxY="YES" />
+                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999"
+                            blue="0.3885722258" alpha="1" colorSpace="calibratedRGB" />
                     </imageView>
-                    <textView autoresizesSubviews="NO" opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" bouncesZoom="NO" editable="NO" text="Content" id="102">
-                        <rect key="frame" x="47" y="35" width="273" height="1451"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                    <textView autoresizesSubviews="NO" opaque="NO" multipleTouchEnabled="YES"
+                        contentMode="scaleToFill" bounces="NO" scrollEnabled="NO"
+                        showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO"
+                        delaysContentTouches="NO" bouncesZoom="NO" editable="NO" text="Content"
+                        id="102">
+                        <rect key="frame" x="47" y="35" width="273" height="1451" />
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES"
+                            heightSizable="YES" />
                         <accessibility key="accessibilityConfiguration">
-                            <accessibilityTraits key="traits" none="YES" button="YES" staticText="YES"/>
+                            <accessibilityTraits key="traits" none="YES" button="YES"
+                                staticText="YES" />
                         </accessibility>
-                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                        <dataDetectorType key="dataDetectorTypes" link="YES"/>
+                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite" />
+                        <fontDescription key="fontDescription" type="system" pointSize="14" />
+                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences" />
+                        <dataDetectorType key="dataDetectorTypes" link="YES" />
                         <connections>
-                            <outlet property="delegate" destination="37" id="137"/>
+                            <outlet property="delegate" destination="37" id="137" />
                         </connections>
                     </textView>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Author" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="38">
-                        <rect key="frame" x="55" y="23" width="160" height="21"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
-                        <color key="highlightedColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                        <color key="shadowColor" red="0.054901960780000002" green="0.058823529409999999" blue="0.062745098040000002" alpha="1" colorSpace="deviceRGB"/>
+                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO"
+                        contentMode="left" text="Author" lineBreakMode="tailTruncation"
+                        baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="38">
+                        <rect key="frame" x="55" y="23" width="160" height="21" />
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES"
+                            flexibleMaxY="YES" />
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="15" />
+                        <color key="textColor" red="1" green="1" blue="1" alpha="1"
+                            colorSpace="calibratedRGB" />
+                        <color key="highlightedColor" white="0.33333333333333331" alpha="1"
+                            colorSpace="calibratedWhite" />
+                        <color key="shadowColor" red="0.054901960780000002"
+                            green="0.058823529409999999" blue="0.062745098040000002" alpha="1"
+                            colorSpace="deviceRGB" />
                     </label>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="oldDiscord.png" id="xKn-f7-9FU">
-                        <rect key="frame" x="50" y="3" width="20" height="20"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999" blue="0.3885722258" alpha="1" colorSpace="calibratedRGB"/>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill"
+                        image="oldDiscord.png" id="xKn-f7-9FU">
+                        <rect key="frame" x="50" y="3" width="20" height="20" />
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"
+                            flexibleMaxY="YES" />
+                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999"
+                            blue="0.3885722258" alpha="1" colorSpace="calibratedRGB" />
                     </imageView>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Author" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="tgA-We-qXE">
-                        <rect key="frame" x="74" y="5" width="254" height="16"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="boldSystem" pointSize="10"/>
-                        <color key="textColor" red="0.67843137254901964" green="0.67843137254901964" blue="0.67843137254901964" alpha="1" colorSpace="calibratedRGB"/>
-                        <color key="highlightedColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO"
+                        contentMode="left" text="Author" lineBreakMode="tailTruncation"
+                        baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO"
+                        id="tgA-We-qXE">
+                        <rect key="frame" x="74" y="5" width="254" height="16" />
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES"
+                            flexibleMaxY="YES" />
+                        <fontDescription key="fontDescription" type="boldSystem" pointSize="10" />
+                        <color key="textColor" red="0.67843137254901964" green="0.67843137254901964"
+                            blue="0.67843137254901964" alpha="1" colorSpace="calibratedRGB" />
+                        <color key="highlightedColor" white="0.33333333333333331" alpha="1"
+                            colorSpace="calibratedWhite" />
+                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1"
+                            colorSpace="calibratedRGB" />
                     </label>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Content" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ufo-K4-mUs">
-                        <rect key="frame" x="113" y="5" width="172" height="16"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                        <color key="textColor" red="0.50269616169999998" green="0.50269616169999998" blue="0.50269616169999998" alpha="1" colorSpace="calibratedRGB"/>
-                        <color key="highlightedColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO"
+                        contentMode="left" text="Content" lineBreakMode="tailTruncation"
+                        baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO"
+                        id="ufo-K4-mUs">
+                        <rect key="frame" x="113" y="5" width="172" height="16" />
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES"
+                            flexibleMaxY="YES" />
+                        <fontDescription key="fontDescription" type="system" pointSize="10" />
+                        <color key="textColor" red="0.50269616169999998" green="0.50269616169999998"
+                            blue="0.50269616169999998" alpha="1" colorSpace="calibratedRGB" />
+                        <color key="highlightedColor" white="0.33333333333333331" alpha="1"
+                            colorSpace="calibratedWhite" />
+                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1"
+                            colorSpace="calibratedRGB" />
                     </label>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="reply.png" id="SRU-vf-0bK">
-                        <rect key="frame" x="6" y="3" width="40" height="16"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill"
+                        image="reply.png" id="SRU-vf-0bK">
+                        <rect key="frame" x="6" y="3" width="40" height="16" />
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES"
+                            flexibleMaxY="YES" />
                     </imageView>
                 </subviews>
             </tableViewCellContentView>
-            <color key="backgroundColor" red="0.15686274510000001" green="0.16078431369999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
+            <color key="backgroundColor" red="0.15686274510000001" green="0.16078431369999999"
+                blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB" />
             <connections>
-                <outlet property="authorLabel" destination="38" id="0Sl-Zd-5L3"/>
-                <outlet property="contentTextView" destination="102" id="0sT-EH-jRe"/>
-                <outlet property="profileImage" destination="99" id="PI9-KK-UPV"/>
-                <outlet property="referencedAuthorLabel" destination="tgA-We-qXE" id="0eQ-p4-zrs"/>
-                <outlet property="referencedMessage" destination="ufo-K4-mUs" id="qE0-RB-8Hk"/>
-                <outlet property="referencedProfileImage" destination="xKn-f7-9FU" id="Fbs-WX-H7Q"/>
+                <outlet property="authorLabel" destination="38" id="0Sl-Zd-5L3" />
+                <outlet property="contentTextView" destination="102" id="0sT-EH-jRe" />
+                <outlet property="profileImage" destination="99" id="PI9-KK-UPV" />
+                <outlet property="referencedAuthorLabel" destination="tgA-We-qXE" id="0eQ-p4-zrs" />
+                <outlet property="referencedMessage" destination="ufo-K4-mUs" id="qE0-RB-8Hk" />
+                <outlet property="referencedProfileImage" destination="xKn-f7-9FU" id="Fbs-WX-H7Q" />
             </connections>
         </tableViewCell>
     </objects>
     <resources>
-        <image name="oldDiscord.png" width="57" height="57"/>
-        <image name="reply.png" width="96" height="41"/>
+        <image name="oldDiscord.png" width="57" height="57" />
+        <image name="reply.png" width="96" height="41" />
     </resources>
 </document>

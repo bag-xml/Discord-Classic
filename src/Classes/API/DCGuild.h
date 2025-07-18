@@ -7,29 +7,41 @@
 //
 
 /*DCGuild is a representation of a Discord API Guild object.
- Its easier to work with than raw JSON data and has some handy 
+ Its easier to work with than raw JSON data and has some handy
  built in functions*/
 
 #import <Foundation/Foundation.h>
+#include <UIKit/UIKit.h>
 
 @interface DCGuild : NSObject
-//ID/snowflake
+// ID/snowflake
 @property NSString* snowflake;
-//Name
+// Name
 @property NSString* name;
+// The ID of the guild's owner
 @property NSString* ownerID;
-@property int* memberCount;
+// The number of members in the guild
+@property int memberCount;
+// The number of currently online members in the guild
+@property int onlineCount;
+// Whether it is muted
+@property BOOL muted;
 
+// The guild's icon
 @property UIImage* icon;
+// The guild's banner
 @property UIImage* banner;
 
-
-//Array of child DCCannel objects
+// Array of child DCChannel objects
 @property NSMutableArray* channels;
-//Whether or not the guild has any unread child channels
+// Whether or not the guild has any unread child channels
 @property bool unread;
+// Members of the guild for display (can contain roles)
+@property NSMutableArray* members;
+// Roles in the guild
+@property NSMutableDictionary* roles;
+// Array of the current user's roles in the guild
+@property NSMutableArray* userRoles;
 
-@property NSMutableDictionary* members;
-
--(void)checkIfRead;
+- (void)checkIfRead;
 @end
