@@ -11,6 +11,8 @@
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
+    #import <CoreText/CoreText.h>
+    #import "DTLog.h"
 
     // https://stackoverflow.com/a/11694878
     // New Indexing

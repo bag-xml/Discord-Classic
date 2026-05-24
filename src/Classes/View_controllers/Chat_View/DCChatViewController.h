@@ -15,6 +15,7 @@
 #import "DCMessage.h"
 #import "ODCContactViewController.h"
 #import "CKRefreshControl.h"
+#import "DTAttributedLabel.h"
 
 #define assertMainThread() NSAssert([NSThread isMainThread], @"Method called using a thread other than main!")
 
@@ -25,7 +26,8 @@
                                       UITableViewDelegate,
                                       UIImagePickerControllerDelegate,
                                       UIActionSheetDelegate,
-                                      UIGestureRecognizerDelegate>
+                                      UIGestureRecognizerDelegate,
+                                      DTAttributedTextContentViewDelegate>
 - (void)getMessages:(int)numberOfMessages beforeMessage:(DCMessage *)message;
 
 @property (weak, nonatomic) IBOutlet UIView *toolbar;

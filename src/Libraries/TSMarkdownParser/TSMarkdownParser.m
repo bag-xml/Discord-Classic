@@ -8,6 +8,7 @@
 
 #import "TSMarkdownParser.h"
 #import <UIKit/UIKit.h>
+#import <CoreText/CoreText.h>
 
 @interface TSExpressionBlockPair : NSObject
 
@@ -73,147 +74,118 @@
 
 + (instancetype)standardParser {
     TSMarkdownParser *defaultParser = [TSMarkdownParser new];
-
     __weak TSMarkdownParser *weakParser = defaultParser;
 
     [defaultParser
         addParagraphParsingWithFormattingBlock:^(
             NSMutableAttributedString *attributedString, NSRange range
         ) {
-            [attributedString addAttribute:NSFontAttributeName
-                                     value:weakParser.paragraphFont
+            [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                     value:(id)weakParser.paragraphFont
                                      range:range];
-            [attributedString addAttribute:NSForegroundColorAttributeName
-                                     value:[UIColor colorWithRed:230 / 255.0
-                                                           green:230 / 255.0
-                                                            blue:230 / 255.0
-                                                           alpha:1]
+            [attributedString addAttribute:(NSString *)kCTForegroundColorAttributeName
+                                     value:(__bridge id)[UIColor colorWithRed:230 / 255.0
+                                                               green:230 / 255.0
+                                                                blue:230 / 255.0
+                                                               alpha:1].CGColor
                                      range:range];
         }];
 
-
-    /* block parsing */
-
     [defaultParser
         addHeaderParsingWithLevel:1
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h1Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h1Font
                                                range:range];
                   }];
 
     [defaultParser
         addHeaderParsingWithLevel:2
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h2Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h2Font
                                                range:range];
                   }];
 
     [defaultParser
         addHeaderParsingWithLevel:3
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h3Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h3Font
                                                range:range];
                   }];
 
     [defaultParser
         addHeaderParsingWithLevel:4
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h4Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h4Font
                                                range:range];
                   }];
 
     [defaultParser
         addHeaderParsingWithLevel:5
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h5Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h5Font
                                                range:range];
                   }];
 
     [defaultParser
         addHeaderParsingWithLevel:6
-                  formattingBlock:^(
-                      NSMutableAttributedString *attributedString, NSRange range
-                  ) {
-                      [attributedString addAttribute:NSFontAttributeName
-                                               value:weakParser.h6Font
+                  formattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+                      [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                               value:(id)weakParser.h6Font
                                                range:range];
                   }];
 
     [defaultParser
-        addListParsingWithFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
+        addListParsingWithFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
             [attributedString replaceCharactersInRange:range withString:@"• "];
         }];
 
-    /* bracket parsing */
-
     [defaultParser
-        addImageParsingWithImageFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
+        addImageParsingWithImageFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
             // no additional formatting
         }
-                 alternativeTextFormattingBlock:^(
-                     NSMutableAttributedString *attributedString, NSRange range
-                 ){
+                 alternativeTextFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
                      // no additional formatting
                  }];
 
     [defaultParser
-        addLinkParsingWithFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
-            [attributedString addAttribute:NSUnderlineStyleAttributeName
+        addLinkParsingWithFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+            [attributedString addAttribute:(NSString *)kCTUnderlineStyleAttributeName
                                      value:weakParser.linkUnderlineStyle
                                      range:range];
-            [attributedString addAttribute:NSForegroundColorAttributeName
-                                     value:weakParser.linkColor
-                                     range:range];
-        }];
-
-    /* inline parsing */
-
-
-    [defaultParser
-        addStrongParsingWithFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
-            [attributedString addAttribute:NSFontAttributeName
-                                     value:weakParser.strongFont
+            [attributedString addAttribute:(NSString *)kCTForegroundColorAttributeName
+                                     value:(__bridge id)[UIColor colorWithRed:148/255.0f
+                                                               green:197/255.0f
+                                                                blue:250/255.0f
+                                                               alpha:1.0f].CGColor
                                      range:range];
         }];
 
     [defaultParser
-        addEmphasisParsingWithFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
-            [attributedString addAttribute:NSFontAttributeName
-                                     value:weakParser.emphasisFont
+        addStrongParsingWithFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+            [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                     value:(id)weakParser.strongFont
                                      range:range];
         }];
 
     [defaultParser
-        addMonospacedParsingWithFormattingBlock:^(
-            NSMutableAttributedString *attributedString, NSRange range
-        ) {
-            [attributedString addAttribute:NSFontAttributeName
-                                     value:weakParser.monospaceFont
+        addEmphasisParsingWithFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+            [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                     value:(id)weakParser.emphasisFont
+                                     range:range];
+        }];
+
+    [defaultParser
+        addMonospacedParsingWithFormattingBlock:^(NSMutableAttributedString *attributedString, NSRange range) {
+            [attributedString addAttribute:(NSString *)kCTFontAttributeName
+                                     value:(id)weakParser.monospaceFont
+                                     range:range];
+            [attributedString addAttribute:(NSString *)kCTForegroundColorAttributeName
+                                     value:(__bridge id)weakParser.monospaceTextColor.CGColor
                                      range:range];
         }];
 

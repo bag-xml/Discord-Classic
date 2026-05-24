@@ -34,6 +34,10 @@
 #import "UILazyImage.h"
 #import "UILazyImageView.h"
 #import "DCCacheManager.h"
+#import "DTLinkButton.h"
+#import "DCMarkdownParser.h"
+#import "DTCoreTextLayouter.h"
+#import "DTCoreTextLayoutFrame.h"
 
 @interface DCChatViewController ()
 @property (strong, nonatomic) NSMutableArray *messages;
@@ -625,7 +629,7 @@ static dispatch_queue_t chat_messages_queue;
 
     if (self.messages.count > 0) {
         NSUInteger curIdx      = [self.messages indexOfObject:compareMessage];
-        DCMessage *prevMessage = curIdx != NSNotFound ? [self.messages objectAtIndex:curIdx - 1] : nil;
+        DCMessage *prevMessage = (curIdx != NSNotFound && curIdx > 0) ? [self.messages objectAtIndex:curIdx - 1] : nil;
         if (prevMessage != nil) {
             NSDate *currentTimeStamp = newMessage.timestamp;
 
@@ -1027,219 +1031,219 @@ static dispatch_queue_t chat_messages_queue;
         DCMessage *messageAtRowIndex = [self.messages objectAtIndex:indexPath.row];
 
         if (self.oldMode) {
-            NSSet *specialMessageTypes =
-                [NSSet setWithArray:@[ @1, @2, @3, @4, @5, @6, @7, @8, @18 ]];
+            // NSSet *specialMessageTypes =
+            //     [NSSet setWithArray:@[ @1, @2, @3, @4, @5, @6, @7, @8, @18 ]];
 
-            if (messageAtRowIndex.isGrouped
-                && ![specialMessageTypes
-                    containsObject:@(messageAtRowIndex.messageType)]) {
-                cell = [tableView dequeueReusableCellWithIdentifier:
-                                      @"OldMode Grouped Message Cell"];
-            } else if (messageAtRowIndex.referencedMessage != nil) {
-                cell = [tableView dequeueReusableCellWithIdentifier:
-                                      @"OldMode Reply Message Cell"];
-            } else if ([specialMessageTypes
-                           containsObject:@(messageAtRowIndex.messageType)]) {
-                cell = [tableView dequeueReusableCellWithIdentifier:
-                                      @"OldMode Universal Typehandler Cell"];
-            } else {
-                cell = [tableView
-                    dequeueReusableCellWithIdentifier:@"OldMode Message Cell"];
-            }
+            // if (messageAtRowIndex.isGrouped
+            //     && ![specialMessageTypes
+            //         containsObject:@(messageAtRowIndex.messageType)]) {
+            //     cell = [tableView dequeueReusableCellWithIdentifier:
+            //                           @"OldMode Grouped Message Cell"];
+            // } else if (messageAtRowIndex.referencedMessage != nil) {
+            //     cell = [tableView dequeueReusableCellWithIdentifier:
+            //                           @"OldMode Reply Message Cell"];
+            // } else if ([specialMessageTypes
+            //                containsObject:@(messageAtRowIndex.messageType)]) {
+            //     cell = [tableView dequeueReusableCellWithIdentifier:
+            //                           @"OldMode Universal Typehandler Cell"];
+            // } else {
+            //     cell = [tableView
+            //         dequeueReusableCellWithIdentifier:@"OldMode Message Cell"];
+            // }
 
-            if (messageAtRowIndex.referencedMessage != nil) {
-                cell.referencedAuthorLabel.text = [messageAtRowIndex.referencedMessage.author 
-                    displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
-                cell.referencedMessage.text     = messageAtRowIndex.referencedMessage.content;
-                cell.referencedMessage.frame    = CGRectMake(
-                    messageAtRowIndex.referencedMessage.authorNameWidth,
-                    cell.referencedMessage.y,
-                    self.chatTableView.width - messageAtRowIndex.authorNameWidth,
-                    cell.referencedMessage.height
-                );
+            // if (messageAtRowIndex.referencedMessage != nil) {
+            //     cell.referencedAuthorLabel.text = [messageAtRowIndex.referencedMessage.author 
+            //         displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
+            //     cell.referencedMessage.text     = messageAtRowIndex.referencedMessage.content;
+            //     cell.referencedMessage.frame    = CGRectMake(
+            //         messageAtRowIndex.referencedMessage.authorNameWidth,
+            //         cell.referencedMessage.y,
+            //         self.chatTableView.width - messageAtRowIndex.authorNameWidth,
+            //         cell.referencedMessage.height
+            //     );
 
-                if (messageAtRowIndex.referencedMessage.author.profileImage) {
-                    cell.referencedProfileImage.image =
-                        messageAtRowIndex.referencedMessage.author.profileImage;
-                } else {
-                    [DCTools getUserAvatar:messageAtRowIndex.referencedMessage.author];
-                }
-            }
+            //     if (messageAtRowIndex.referencedMessage.author.profileImage) {
+            //         cell.referencedProfileImage.image =
+            //             messageAtRowIndex.referencedMessage.author.profileImage;
+            //     } else {
+            //         [DCTools getUserAvatar:messageAtRowIndex.referencedMessage.author];
+            //     }
+            // }
 
-            if (!messageAtRowIndex.isGrouped) {
-                cell.authorLabel.text = [messageAtRowIndex.author 
-                    displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
-            }
+            // if (!messageAtRowIndex.isGrouped) {
+            //     cell.authorLabel.text = [messageAtRowIndex.author 
+            //         displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
+            // }
 
-            cell.contentTextView.text = messageAtRowIndex.content;
+            // cell.contentTextView.text = messageAtRowIndex.content;
 
-            cell.contentTextView.height = [cell.contentTextView
-                                              sizeThatFits:CGSizeMake(
-                                                               cell.contentTextView.width, MAXFLOAT
-                                                           )]
-                                              .height;
+            // cell.contentTextView.height = [cell.contentTextView
+            //                                   sizeThatFits:CGSizeMake(
+            //                                                    cell.contentTextView.width, MAXFLOAT
+            //                                                )]
+            //                                   .height;
 
-            if (!messageAtRowIndex.isGrouped) {
-                cell.profileImage.image = messageAtRowIndex.author.profileImage;
-            }
+            // if (!messageAtRowIndex.isGrouped) {
+            //     cell.profileImage.image = messageAtRowIndex.author.profileImage;
+            // }
 
-            cell.contentView.backgroundColor = messageAtRowIndex.pingingUser
-                ? [UIColor redColor]
-                : [UIColor clearColor];
+            // cell.contentView.backgroundColor = messageAtRowIndex.pingingUser
+            //     ? [UIColor redColor]
+            //     : [UIColor clearColor];
 
-            // NSLog(@"%@", cell.subviews);
-            cell.contentTextView.hidden = NO;
-            for (UIView *subView in cell.subviews) {
-                @autoreleasepool {
-                    if ([subView isKindOfClass:[UILazyImageView class]]
-                     || [subView isKindOfClass:[DCChatVideoAttachment class]]
-                     || [subView isKindOfClass:[QLPreviewController class]]
-                     || [subView isKindOfClass:[UIActivityIndicatorView class]]
-                        ) {
-                        [subView removeFromSuperview];
-                    }
-                }
-            }
-            // dispatch_async(dispatch_get_main_queue(), ^{
-            float contentWidth = self.chatTableView.width - 63;
-            CGSize textSize = [messageAtRowIndex.content
-                     sizeWithFont:[UIFont systemFontOfSize:14]
-                constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
-                    lineBreakMode:NSLineBreakByWordWrapping];
-            CGFloat correctTextHeight = ceil(textSize.height) + 2;
-            int imageViewOffset = correctTextHeight + 37;
+            // // NSLog(@"%@", cell.subviews);
+            // cell.contentTextView.hidden = NO;
+            // for (UIView *subView in cell.subviews) {
+            //     @autoreleasepool {
+            //         if ([subView isKindOfClass:[UILazyImageView class]]
+            //          || [subView isKindOfClass:[DCChatVideoAttachment class]]
+            //          || [subView isKindOfClass:[QLPreviewController class]]
+            //          || [subView isKindOfClass:[UIActivityIndicatorView class]]
+            //             ) {
+            //             [subView removeFromSuperview];
+            //         }
+            //     }
+            // }
+            // // dispatch_async(dispatch_get_main_queue(), ^{
+            // float contentWidth = self.chatTableView.width - 63;
+            // CGSize textSize = [messageAtRowIndex.content
+            //          sizeWithFont:[UIFont systemFontOfSize:14]
+            //     constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
+            //         lineBreakMode:NSLineBreakByWordWrapping];
+            // CGFloat correctTextHeight = ceil(textSize.height) + 2;
+            // int imageViewOffset = correctTextHeight + 37;
 
-            // NSLog(@"[Message] snowflake: %@ attachmentCount: %d attachments: %lu", 
-            //     messageAtRowIndex.snowflake, 
-            //     messageAtRowIndex.attachmentCount,
-            //     (unsigned long)messageAtRowIndex.attachments.count);
-            for (id attachment in messageAtRowIndex.attachments) {
-                NSLog(@"[Attachment] class: %@", NSStringFromClass([attachment class]));
-                @autoreleasepool {
-                    if ([attachment isKindOfClass:[UILazyImage class]]) {
-                        UILazyImage *lazyImage     = attachment;
-                        UILazyImageView *imageView = [UILazyImageView new];
-                        imageView.frame            = CGRectMake(
-                            11, imageViewOffset,
-                            self.chatTableView.width - 22, 200
-                        );
-                        imageView.image       = lazyImage.image;
-                        imageView.contentMode = UIViewContentModeScaleAspectFit;
-                        imageView.imageURL    = lazyImage.imageURL;
+            // // NSLog(@"[Message] snowflake: %@ attachmentCount: %d attachments: %lu", 
+            // //     messageAtRowIndex.snowflake, 
+            // //     messageAtRowIndex.attachmentCount,
+            // //     (unsigned long)messageAtRowIndex.attachments.count);
+            // for (id attachment in messageAtRowIndex.attachments) {
+            //     NSLog(@"[Attachment] class: %@", NSStringFromClass([attachment class]));
+            //     @autoreleasepool {
+            //         if ([attachment isKindOfClass:[UILazyImage class]]) {
+            //             UILazyImage *lazyImage     = attachment;
+            //             UILazyImageView *imageView = [UILazyImageView new];
+            //             imageView.frame            = CGRectMake(
+            //                 11, imageViewOffset,
+            //                 self.chatTableView.width - 22, 200
+            //             );
+            //             imageView.image       = lazyImage.image;
+            //             imageView.contentMode = UIViewContentModeScaleAspectFit;
+            //             imageView.imageURL    = lazyImage.imageURL;
 
-                        imageViewOffset += imageView.height + 11;
+            //             imageViewOffset += imageView.height + 11;
 
-                        UITapGestureRecognizer *singleTap =
-                            [[UITapGestureRecognizer alloc]
-                                initWithTarget:self
-                                        action:@selector(tappedImage:)];
-                        singleTap.numberOfTapsRequired   = 1;
-                        imageView.userInteractionEnabled = YES;
-                        [imageView addGestureRecognizer:singleTap];
+            //             UITapGestureRecognizer *singleTap =
+            //                 [[UITapGestureRecognizer alloc]
+            //                     initWithTarget:self
+            //                             action:@selector(tappedImage:)];
+            //             singleTap.numberOfTapsRequired   = 1;
+            //             imageView.userInteractionEnabled = YES;
+            //             [imageView addGestureRecognizer:singleTap];
 
-                        [cell addSubview:imageView];
-                    } else if ([attachment
-                                   isKindOfClass:[DCChatVideoAttachment class]]) {
-                        ////NSLog(@"add video!");
-                        DCChatVideoAttachment *video = attachment;
+            //             [cell addSubview:imageView];
+            //         } else if ([attachment
+            //                        isKindOfClass:[DCChatVideoAttachment class]]) {
+            //             ////NSLog(@"add video!");
+            //             DCChatVideoAttachment *video = attachment;
 
-                        UITapGestureRecognizer *singleTap =
-                            [[UITapGestureRecognizer alloc]
-                                initWithTarget:self
-                                        action:@selector(tappedVideo:)];
-                        singleTap.numberOfTapsRequired = 1;
-                        [video.playButton addGestureRecognizer:singleTap];
-                        video.playButton.userInteractionEnabled = YES;
+            //             UITapGestureRecognizer *singleTap =
+            //                 [[UITapGestureRecognizer alloc]
+            //                     initWithTarget:self
+            //                             action:@selector(tappedVideo:)];
+            //             singleTap.numberOfTapsRequired = 1;
+            //             [video.playButton addGestureRecognizer:singleTap];
+            //             video.playButton.userInteractionEnabled = YES;
 
-                        CGFloat aspectRatio = video.thumbnail.image.size.width /
-                            video.thumbnail.image.size.height;
-                        int newWidth  = 200 * aspectRatio;
-                        int newHeight = 200;
-                        if (newWidth > self.chatTableView.width - 66) {
-                            newWidth  = self.chatTableView.width - 66;
-                            newHeight = newWidth / aspectRatio;
-                        }
-                        video.frame = CGRectMake(55, imageViewOffset, newWidth, newHeight);
-                        [video prepareForDisplay];
+            //             CGFloat aspectRatio = video.thumbnail.image.size.width /
+            //                 video.thumbnail.image.size.height;
+            //             int newWidth  = 200 * aspectRatio;
+            //             int newHeight = 200;
+            //             if (newWidth > self.chatTableView.width - 66) {
+            //                 newWidth  = self.chatTableView.width - 66;
+            //                 newHeight = newWidth / aspectRatio;
+            //             }
+            //             video.frame = CGRectMake(55, imageViewOffset, newWidth, newHeight);
+            //             [video prepareForDisplay];
 
-                        imageViewOffset += newHeight;
+            //             imageViewOffset += newHeight;
 
-                        [cell addSubview:video];
-                    } else if ([attachment isKindOfClass:[DCGifInfo class]]) {
-                        DCGifInfo *gifInfo = attachment;
-                        DCChatGifAttachment *gif = [[[NSBundle mainBundle]
-                            loadNibNamed:@"DCChatGifAttachment"
-                                   owner:nil
-                                 options:nil] objectAtIndex:0];
-                        gif.staticThumbnail    = gifInfo.staticThumbnail;
-                        gif.gifThumbnail.image = gifInfo.staticThumbnail;
-                        gif.gifURL             = gifInfo.gifURL;
-                        CGFloat aspectRatio = gif.staticThumbnail.size.width / gif.staticThumbnail.size.height;
-                        int newWidth  = 200 * aspectRatio;
-                        int newHeight = 200;
-                        if (newWidth > self.chatTableView.width - 66) {
-                            newWidth  = self.chatTableView.width - 66;
-                            newHeight = newWidth / aspectRatio;
-                        }
-                        [gif setFrame:CGRectMake(55, imageViewOffset, newWidth, newHeight)];
-                        [gif prepareForDisplay];
-                        imageViewOffset += newHeight;
-                        [cell addSubview:gif];
-                    } else if ([attachment isKindOfClass:[QLPreviewController class]]) {
-                        ////NSLog(@"Add QuickLook!");
-                        QLPreviewController *preview = attachment;
+            //             [cell addSubview:video];
+            //         } else if ([attachment isKindOfClass:[DCGifInfo class]]) {
+            //             DCGifInfo *gifInfo = attachment;
+            //             DCChatGifAttachment *gif = [[[NSBundle mainBundle]
+            //                 loadNibNamed:@"DCChatGifAttachment"
+            //                        owner:nil
+            //                      options:nil] objectAtIndex:0];
+            //             gif.staticThumbnail    = gifInfo.staticThumbnail;
+            //             gif.gifThumbnail.image = gifInfo.staticThumbnail;
+            //             gif.gifURL             = gifInfo.gifURL;
+            //             CGFloat aspectRatio = gif.staticThumbnail.size.width / gif.staticThumbnail.size.height;
+            //             int newWidth  = 200 * aspectRatio;
+            //             int newHeight = 200;
+            //             if (newWidth > self.chatTableView.width - 66) {
+            //                 newWidth  = self.chatTableView.width - 66;
+            //                 newHeight = newWidth / aspectRatio;
+            //             }
+            //             [gif setFrame:CGRectMake(55, imageViewOffset, newWidth, newHeight)];
+            //             [gif prepareForDisplay];
+            //             imageViewOffset += newHeight;
+            //             [cell addSubview:gif];
+            //         } else if ([attachment isKindOfClass:[QLPreviewController class]]) {
+            //             ////NSLog(@"Add QuickLook!");
+            //             QLPreviewController *preview = attachment;
 
-                        /*UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer
-                         alloc] initWithTarget:self action:@selector(tappedVideo:)];
-                         singleTap.numberOfTapsRequired = 1;
-                         [video.playButton addGestureRecognizer:singleTap];
-                         video.playButton.userInteractionEnabled = YES;
+            //             /*UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer
+            //              alloc] initWithTarget:self action:@selector(tappedVideo:)];
+            //              singleTap.numberOfTapsRequired = 1;
+            //              [video.playButton addGestureRecognizer:singleTap];
+            //              video.playButton.userInteractionEnabled = YES;
 
-                         CGFloat aspectRatio = video.thumbnail.image.size.width /
-                         video.thumbnail.image.size.height; int newWidth = 200 *
-                         aspectRatio; int newHeight = 200; if (newWidth >
-                         self.chatTableView.width - 66) { newWidth =
-                         self.chatTableView.width - 66; newHeight = newWidth /
-                         aspectRatio;
-                         }
-                         [video setFrame:CGRectMake(55, imageViewOffset, newWidth,
-                         newHeight)];*/
+            //              CGFloat aspectRatio = video.thumbnail.image.size.width /
+            //              video.thumbnail.image.size.height; int newWidth = 200 *
+            //              aspectRatio; int newHeight = 200; if (newWidth >
+            //              self.chatTableView.width - 66) { newWidth =
+            //              self.chatTableView.width - 66; newHeight = newWidth /
+            //              aspectRatio;
+            //              }
+            //              [video setFrame:CGRectMake(55, imageViewOffset, newWidth,
+            //              newHeight)];*/
 
-                        imageViewOffset += 210;
+            //             imageViewOffset += 210;
 
-                        [cell addSubview:preview.view];
-                    } else if ([attachment isKindOfClass:[NSArray class]]) {
-                        NSArray *dimensions = attachment;
-                        if (dimensions.count == 2) {
-                            int width  = [dimensions[0] intValue];
-                            int height = [dimensions[1] intValue];
-                            if (width <= 0 || height <= 0) {
-                                continue;
-                            }
-                            CGFloat aspectRatio = (CGFloat)width / height;
-                            int newWidth        = 200 * aspectRatio;
-                            int newHeight       = 200;
-                            if (newWidth > self.chatTableView.width - 66) {
-                                newWidth  = self.chatTableView.width - 66;
-                                newHeight = newWidth / aspectRatio;
-                            }
-                            UIActivityIndicatorView *activityIndicator =
-                                [[UIActivityIndicatorView alloc]
-                                    initWithActivityIndicatorStyle:
-                                        UIActivityIndicatorViewStyleWhite];
-                            [activityIndicator setFrame:CGRectMake(
-                                                            11, imageViewOffset, newWidth,
-                                                            newHeight
-                                                        )];
-                            [activityIndicator setContentMode:UIViewContentModeScaleAspectFit];
-                            imageViewOffset += newHeight + 11;
+            //             [cell addSubview:preview.view];
+            //         } else if ([attachment isKindOfClass:[NSArray class]]) {
+            //             NSArray *dimensions = attachment;
+            //             if (dimensions.count == 2) {
+            //                 int width  = [dimensions[0] intValue];
+            //                 int height = [dimensions[1] intValue];
+            //                 if (width <= 0 || height <= 0) {
+            //                     continue;
+            //                 }
+            //                 CGFloat aspectRatio = (CGFloat)width / height;
+            //                 int newWidth        = 200 * aspectRatio;
+            //                 int newHeight       = 200;
+            //                 if (newWidth > self.chatTableView.width - 66) {
+            //                     newWidth  = self.chatTableView.width - 66;
+            //                     newHeight = newWidth / aspectRatio;
+            //                 }
+            //                 UIActivityIndicatorView *activityIndicator =
+            //                     [[UIActivityIndicatorView alloc]
+            //                         initWithActivityIndicatorStyle:
+            //                             UIActivityIndicatorViewStyleWhite];
+            //                 [activityIndicator setFrame:CGRectMake(
+            //                                                 11, imageViewOffset, newWidth,
+            //                                                 newHeight
+            //                                             )];
+            //                 [activityIndicator setContentMode:UIViewContentModeScaleAspectFit];
+            //                 imageViewOffset += newHeight + 11;
 
-                            [cell addSubview:activityIndicator];
-                            [activityIndicator startAnimating];
-                        }
-                    }
-                }
-            }
+            //                 [cell addSubview:activityIndicator];
+            //                 [activityIndicator startAnimating];
+            //             }
+            //         }
+            //     }
+            // }
         } else {
             CFAbsoluteTime cellStart = CFAbsoluteTimeGetCurrent();
             static NSSet *specialMessageTypes = nil;
@@ -1309,7 +1313,8 @@ static dispatch_queue_t chat_messages_queue;
                     if ([subView isKindOfClass:[QLPreviewController class]]) {
                         [subView removeFromSuperview];
                     }
-                    if ([subView isKindOfClass:[UIButton class]]) {
+                    if ([subView isKindOfClass:[UIButton class]] && 
+                        ![subView isKindOfClass:[DTLinkButton class]]) {
                         [subView removeFromSuperview];
                     }
                     if ([subView isKindOfClass:[DCChatGifAttachment class]]) {
@@ -1329,25 +1334,31 @@ static dispatch_queue_t chat_messages_queue;
                 }
             }
 
+            [cell.contentTextView removeAllCustomViewsForLinks];
+            [cell.referencedMessage removeAllCustomViewsForLinks];
+
             if (messageAtRowIndex.referencedMessage != nil) {
                 cell.referencedAuthorLabel.text = [messageAtRowIndex.referencedMessage.author 
                     displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
-                cell.referencedMessage.text     = messageAtRowIndex.referencedMessage.content;
-                cell.referencedMessage.frame    = CGRectMake(
-                    messageAtRowIndex.referencedMessage
-                        .authorNameWidth,
+                
+                NSAttributedString *referencedContent = messageAtRowIndex.referencedMessage.attributedContent
+                    ?: [[DCMarkdownParser sharedParser] attributedStringFromMarkdown:messageAtRowIndex.referencedMessage.content];
+                cell.referencedMessage.attributedString = referencedContent;
+                
+                cell.referencedMessage.frame = CGRectMake(
+                    messageAtRowIndex.referencedMessage.authorNameWidth,
                     cell.referencedMessage.y,
-                    self.chatTableView.width
-                        - messageAtRowIndex.authorNameWidth,
+                    self.chatTableView.width - messageAtRowIndex.authorNameWidth,
                     cell.referencedMessage.height
                 );
-
                 cell.referencedProfileImage.image = messageAtRowIndex.referencedMessage.author.profileImage;
                 UIButton *referencedMessageButton = [UIButton buttonWithType:UIButtonTypeCustom];
-                referencedMessageButton.frame = CGRectMake(cell.referencedProfileImage.x, 
-                                                           cell.referencedMessage.y, 
-                                                           cell.referencedMessage.x + cell.referencedMessage.width - cell.referencedProfileImage.x, 
-                                                           cell.referencedMessage.height);
+                referencedMessageButton.frame = CGRectMake(
+                    cell.referencedProfileImage.x, 
+                    cell.referencedMessage.y, 
+                    cell.referencedMessage.x + cell.referencedMessage.width - cell.referencedProfileImage.x, 
+                    cell.referencedMessage.height
+                );
                 referencedMessageButton.exclusiveTouch = YES;
                 [referencedMessageButton addTarget:self
                                              action:@selector(tappedReferencedMessage:)
@@ -1405,83 +1416,63 @@ static dispatch_queue_t chat_messages_queue;
             } else if (messageAtRowIndex.messageType == DCMessageTypeGuildBoost || messageAtRowIndex.messageType == DCMessageTypeThreadCreated) {
                 cell.universalImageView.image = [UIImage imageNamed:@"U-Boost"];
             }
+            // Set colors
+            // NSMutableAttributedString *colored = [messageAtRowIndex.attributedContent mutableCopy];
+            // [colored enumerateAttribute:NSForegroundColorAttributeName
+            //                     inRange:NSMakeRange(0, colored.length)
+            //                     options:0
+            //                  usingBlock:^(id value, NSRange range, BOOL *stop) {
+            //     if (!value) {
+            //         [colored addAttribute:NSForegroundColorAttributeName
+            //                         value:[UIColor whiteColor]
+            //                         range:range];
+            //     }
+            // }];
+            // NSLog(@"attributedContent: %@", messageAtRowIndex.attributedContent);
+            // cell.contentTextView.attributedString = colored;
 
-            if (VERSION_MIN(@"6.0")) {
-                cell.contentTextView.attributedText = nil;
-            }
-            cell.contentTextView.text            = @"";
-            cell.contentTextView.textColor       = [UIColor whiteColor];
-            cell.contentTextView.font            = [UIFont systemFontOfSize:14];
-
-            // TICK(content);
-            cell.contentTextView.text = messageAtRowIndex.content;
-            if (messageAtRowIndex.attributedContent) {
-                NSMutableAttributedString *colored = [messageAtRowIndex.attributedContent mutableCopy];
-                [colored enumerateAttribute:NSForegroundColorAttributeName
-                                    inRange:NSMakeRange(0, colored.length)
-                                    options:0
-                                 usingBlock:^(id value, NSRange range, BOOL *stop) {
-                    if (!value) {
-                        [colored addAttribute:NSForegroundColorAttributeName
-                                        value:[UIColor whiteColor]
-                                        range:range];
-                    }
-                }];
-                cell.contentTextView.attributedText = colored;
-            }
-
-            // URL detection and coloring — iOS 6+ only
-            if (VERSION_MIN(@"6.0")) {
-                NSMutableAttributedString *linked = cell.contentTextView.attributedText
-                    ? [cell.contentTextView.attributedText mutableCopy]
-                    : [[NSMutableAttributedString alloc] initWithString:cell.contentTextView.text
-                                                             attributes:@{
-                                                                 NSForegroundColorAttributeName: [UIColor whiteColor],
-                                                                 NSFontAttributeName: [UIFont systemFontOfSize:14]
-                                                             }];
-                NSDataDetector *detector = [NSDataDetector dataDetectorWithTypes:NSTextCheckingTypeLink error:nil];
-                NSArray *matches = [detector matchesInString:linked.string options:0 range:NSMakeRange(0, linked.string.length)];
-                for (NSTextCheckingResult *match in matches) {
-                    [linked addAttribute:NSForegroundColorAttributeName
-                                   value:[UIColor colorWithRed:148/255.0f green:197/255.0f blue:250/255.0f alpha:1.0f]
-                                   range:match.range];
-                }
-                cell.contentTextView.attributedText = linked;
-            }
-            
             float contentWidth = self.chatTableView.width - 63;
+
+            // Set content
+
+            cell.contentTextView.attributedString = nil;
+            [cell.contentTextView relayoutText];
+            cell.contentTextView.attributedString = messageAtRowIndex.attributedContent;
+            cell.contentTextView.delegate = self;
+            cell.contentTextView.userInteractionEnabled = YES;
+
             NSCharacterSet *invisibleChars = [NSCharacterSet characterSetWithCharactersInString:@"\u00A0\u200B\n\r\t "];
             BOOL hasVisibleContent = [[messageAtRowIndex.content stringByTrimmingCharactersInSet:invisibleChars] length] > 0 
                 || messageAtRowIndex.emojis.count > 0;
-            cell.contentTextView.hidden = !hasVisibleContent;
+
+            CGFloat currentTextHeight = 0;
+            if (hasVisibleContent && messageAtRowIndex.attributedContent) {
+                DTCoreTextLayouter *layouter = [[DTCoreTextLayouter alloc] 
+                    initWithAttributedString:messageAtRowIndex.attributedContent];
+                CGRect proposedFrame = CGRectMake(0, 0, contentWidth, CGFLOAT_HEIGHT_UNKNOWN);
+                DTCoreTextLayoutFrame *layoutFrame = [layouter layoutFrameWithRect:proposedFrame 
+                                                                             range:NSMakeRange(0, 0)];
+                currentTextHeight = ceil(CGRectGetHeight(layoutFrame.frame)) + 2;
+            }
+
             if (!hasVisibleContent) {
+                cell.contentTextView.attributedString = nil;
+                cell.contentTextView.hidden = YES;
                 cell.contentTextView.frame = CGRectMake(
                     cell.contentTextView.x,
                     cell.contentTextView.y,
                     cell.contentTextView.width,
-                    9999
+                    0
                 );
             } else {
-                CGFloat currentTextHeight;
-                if (VERSION_MIN(@"6.0") && messageAtRowIndex.attributedContent) {
-                    CGRect boundingRect = [messageAtRowIndex.attributedContent
-                        boundingRectWithSize:CGSizeMake(contentWidth, MAXFLOAT)
-                                     options:NSStringDrawingUsesLineFragmentOrigin
-                                     context:nil];
-                    currentTextHeight = ceil(boundingRect.size.height) + 2;
-                } else {
-                    CGSize textSize = [messageAtRowIndex.content
-                             sizeWithFont:[UIFont systemFontOfSize:14]
-                        constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
-                            lineBreakMode:NSLineBreakByWordWrapping];
-                    currentTextHeight = ceil(textSize.height) + 2;
-                }
+                cell.contentTextView.hidden = NO;
                 cell.contentTextView.frame = CGRectMake(
                     cell.contentTextView.x,
                     cell.contentTextView.y,
                     contentWidth,
                     currentTextHeight
                 );
+                [cell.contentTextView relayoutText];
             }
 
             // Emoji handling iOS 5
@@ -1495,9 +1486,9 @@ static dispatch_queue_t chat_messages_queue;
                     NSNumber *location = emojiInfo[1];
                     NSUInteger loc     = location.unsignedIntegerValue;
 
-                    if (loc >= cell.contentTextView.text.length) continue;
+                    if (loc >= messageAtRowIndex.content.length) continue;
 
-                    NSString *textUpToEmoji = [cell.contentTextView.text substringToIndex:loc];
+                    NSString *textUpToEmoji = [messageAtRowIndex.content substringToIndex:loc];
 
                     CGFloat emojiY, emojiX;
                     if (textUpToEmoji.length == 0) {
@@ -1566,11 +1557,11 @@ static dispatch_queue_t chat_messages_queue;
             contentSize.height = ceil(contentSize.height);
             CGFloat imageViewOffset;
             if (messageAtRowIndex.isGrouped) {
-                imageViewOffset = MAX(contentSize.height, 18) + 4;
+                imageViewOffset = MAX(currentTextHeight - 2, 18) + 4;
             } else {
                 imageViewOffset = MAX(
                     (cond ? authorNameSize.height : 0)
-                        + (messageAtRowIndex.attachmentCount ? (hasVisibleContent ? contentSize.height : 0) : MAX(contentSize.height, 18))
+                        + (messageAtRowIndex.attachmentCount ? (hasVisibleContent ? currentTextHeight - 2 : 0) : MAX(currentTextHeight - 2, 18))
                         + 10
                         + (messageAtRowIndex.referencedMessage != nil ? 16 : 0),
                     (cond ? authorNameSize.height : 0) + (hasVisibleContent ? [UIFont systemFontOfSize:14].lineHeight : 0) + 10
@@ -1738,11 +1729,8 @@ static dispatch_queue_t chat_messages_queue;
         authorNameSize = CGSizeMake(measured.width, singleLineHeight);
     }
 
-    CGSize contentSize = [message.content
-             sizeWithFont:[UIFont systemFontOfSize:14]
-        constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
-            lineBreakMode:NSLineBreakByWordWrapping];
-    contentSize.height = ceil(contentSize.height);
+    CGFloat textHeight = message.textHeight > 2 ? message.textHeight - 2 : 0;
+    CGSize contentSize = CGSizeMake(contentWidth, textHeight);
 
     NSCharacterSet *invisibleChars = [NSCharacterSet characterSetWithCharactersInString:@"\u00A0\u200B\n\r\t "];
     BOOL hasVisibleContent = [[message.content stringByTrimmingCharactersInSet:invisibleChars] length] > 0
@@ -1821,6 +1809,24 @@ static dispatch_queue_t chat_messages_queue;
     return contentHeight + attachmentHeight + (attachmentHeight ? 11 : 0);
 }
 
+- (void)attributedLabel:(DTAttributedLabel *)label didSelectLinkWithURL:(NSURL *)url {
+    [[UIApplication sharedApplication] openURL:url];
+}
+
+- (UIView *)attributedTextContentView:(DTAttributedTextContentView *)attributedTextContentView 
+                           viewForLink:(NSURL *)url 
+                            identifier:(NSString *)identifier 
+                                 frame:(CGRect)frame {
+    DTLinkButton *button = [[DTLinkButton alloc] initWithFrame:frame];
+    button.URL = url;
+    [button addTarget:self action:@selector(linkButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    return button;
+}
+
+- (void)linkButtonTapped:(DTLinkButton *)button {
+    [[UIApplication sharedApplication] openURL:button.URL];
+}
+
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
     DCMessage *messageAtRowIndex = [self.messages objectAtIndex:indexPath.row];
     
@@ -1865,6 +1871,10 @@ static dispatch_queue_t chat_messages_queue;
     }
 //    NSLog(@"[Height] snowflake: %@ contentHeight: %f attachmentHeight: %d result: %f", 
 //    messageAtRowIndex.snowflake, messageAtRowIndex.contentHeight, attachmentHeight, result);
+    NSLog(@"[Height] snowflake: %@ result: %.0f textHeight: %.0f",
+        messageAtRowIndex.snowflake,
+        result,
+        messageAtRowIndex.textHeight);
     return result;
 }
 

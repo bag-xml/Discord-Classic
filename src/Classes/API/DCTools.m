@@ -23,10 +23,13 @@
 #import "QuickLook/QuickLook.h"
 #import "SDWebImageManager.h"
 #include "TSMarkdownParser.h"
+#import "DCMarkdownParser.h"
 #import "ThumbHash.h"
 #import "UIImage+animatedGIF.h"
 #import "UILazyImage.h"
 #import "DCContentManager.h"
+#import "DTCoreTextLayouter.h"
+#import "DTCoreTextLayoutFrame.h"
 
 // https://discord.gg/X4NSsMC
 
@@ -1410,89 +1413,87 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
             constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
                 lineBreakMode:(NSLineBreakMode)UILineBreakModeWordWrap];
         contentSize.height = ceil(contentSize.height);
-        newMessage.textHeight = ceil(contentSize.height) + 2;
 
         newMessage.attributedContent = nil;
-        if (VERSION_MIN(@"6.0") && [newMessage.content length] > 0) {
-            static dispatch_once_t onceToken;
-            static TSMarkdownParser *parser;
-            dispatch_once(&onceToken, ^{
-                parser = [TSMarkdownParser standardParser];
-            });
-            @synchronized(parser) {
-                NSAttributedString *attributedText =
-                    [parser attributedStringFromMarkdown:newMessage.content];
-                if (attributedText && ![attributedText.string isEqualToString:newMessage.content]) {
-                    newMessage.attributedContent = attributedText;
-                    newMessage.content = attributedText.string;
-                    // recalc emoji positions
-                    NSRange range = NSMakeRange(0, newMessage.content.length);
-                    for (NSUInteger idx = 0; idx < newMessage.emojis.count; idx++) {
-                        NSArray *emojiInfo = newMessage.emojis[idx];
-                        DCEmoji *emoji = emojiInfo[0];
-                        NSNumber *location = emojiInfo[1];
-                        NSRange found = [newMessage.content rangeOfString:@"\u00A0\u00A0\u00A0\u00A0\u200B"
+        if ([newMessage.content length] > 0) {
+            NSAttributedString *attributedText = [[DCMarkdownParser sharedParser]
+                attributedStringFromMarkdown:newMessage.content];
+            if (attributedText) {
+                newMessage.attributedContent = attributedText;
+                newMessage.content = attributedText.string;
+                // recalc emoji positions — markdown link replacement can shorten the string
+                NSRange range = NSMakeRange(0, newMessage.content.length);
+                for (NSUInteger idx = 0; idx < newMessage.emojis.count; idx++) {
+                    NSArray *emojiInfo = newMessage.emojis[idx];
+                    DCEmoji *emoji = emojiInfo[0];
+                    NSNumber *location = emojiInfo[1];
+                    NSRange found = [newMessage.content rangeOfString:@"\u00A0\u00A0\u00A0\u00A0\u200B"
                                                   options:NSLiteralSearch
                                                     range:range];
-                        if (found.location == NSNotFound) {
-                            DBGLOG(@"Failed to find emoji %@ in content %@", emoji.name, newMessage.content);
-                            break;
-                        }
-                        if (found.location != [location unsignedIntValue]) {
-                            [newMessage.emojis replaceObjectAtIndex:idx withObject:@[ emoji, @(found.location) ]];
-                        }
-                        range.location = found.location + found.length;
-                        range.length = newMessage.content.length - range.location;
+                    if (found.location == NSNotFound) {
+                        DBGLOG(@"Failed to find emoji %@ in content %@", emoji.name, newMessage.content);
+                        break;
                     }
-                    // Recalculate contentSize using processed attributed string since
-                    // TSMarkdownParser shortens links which changes the measured height
-                    CGSize attributedSize = [newMessage.attributedContent.string
-                             sizeWithFont:[UIFont systemFontOfSize:14]
-                        constrainedToSize:CGSizeMake(contentWidth, MAXFLOAT)
-                            lineBreakMode:(NSLineBreakMode)UILineBreakModeWordWrap];
-                    attributedSize.height = ceil(attributedSize.height);
-                    contentSize = attributedSize;
+                    if (found.location != [location unsignedIntValue]) {
+                        [newMessage.emojis replaceObjectAtIndex:idx withObject:@[ emoji, @(found.location) ]];
+                    }
+                    range.location = found.location + found.length;
+                    range.length = newMessage.content.length - range.location;
+                }
+                // Recalculate height using DTCoreText layout engine for accuracy
+                if (newMessage.attributedContent) {
+                    DTCoreTextLayouter *layouter = [[DTCoreTextLayouter alloc] 
+                        initWithAttributedString:newMessage.attributedContent];
+                    CGRect layoutRect = CGRectMake(0, 0, contentWidth, CGFLOAT_HEIGHT_UNKNOWN);
+                    DTCoreTextLayoutFrame *layoutFrame = [layouter layoutFrameWithRect:layoutRect 
+                                                                                 range:NSMakeRange(0, 0)];
+                    contentSize.height = ceil(CGRectGetHeight(layoutFrame.frame));
                 }
             }
         }
-        // pretty "(edited)" tag for iOS 6 and up
+
+        // Pretty "(edited)" tag — CoreText attributes for iOS 5 compatibility
         if (newMessage.editedTimestamp != nil) {
+            if (!newMessage.attributedContent) {
+                newMessage.attributedContent = [[NSAttributedString alloc]
+                    initWithString:newMessage.content
+                        attributes:@{
+                            (NSString *)kCTFontAttributeName: CFBridgingRelease(
+                                CTFontCreateWithName((__bridge CFStringRef)[UIFont systemFontOfSize:14].fontName, 14, NULL))
+                        }];
+            }
+            NSMutableAttributedString *mutable = [newMessage.attributedContent mutableCopy];
+            NSMutableDictionary *editedAttrs = [@{
+                (NSString *)kCTFontAttributeName: CFBridgingRelease(
+                    CTFontCreateWithName((__bridge CFStringRef)[UIFont systemFontOfSize:10].fontName, 10, NULL)),
+                (NSString *)kCTForegroundColorAttributeName: (__bridge id)[UIColor colorWithRed:128/255.0f
+                                                                                          green:128/255.0f
+                                                                                           blue:128/255.0f
+                                                                                          alpha:1.0f].CGColor
+            } mutableCopy];
             if (VERSION_MIN(@"6.0")) {
-                if (!newMessage.attributedContent) {
-                    // No markdown — create attributed string from plain content
-                    newMessage.attributedContent = [[NSAttributedString alloc]
-                        initWithString:newMessage.content
-                            attributes:@{NSFontAttributeName: [UIFont systemFontOfSize:14]}];
-                }
-                NSMutableAttributedString *mutable = [newMessage.attributedContent mutableCopy];
                 NSShadow *shadow = [NSShadow new];
                 shadow.shadowColor = [UIColor blackColor];
                 shadow.shadowOffset = CGSizeMake(0, 1);
                 shadow.shadowBlurRadius = 0;
-                [mutable appendAttributedString:[[NSAttributedString alloc]
-                    initWithString:@" (edited)"
-                        attributes:@{
-                            NSForegroundColorAttributeName: [UIColor colorWithRed:128/255.0f
-                                                                            green:128/255.0f
-                                                                             blue:128/255.0f
-                                                                            alpha:1.0f],
-                            NSFontAttributeName: [UIFont systemFontOfSize:10],
-                            NSShadowAttributeName: shadow
-                        }]];
-                newMessage.attributedContent = mutable;
-            } else {
-                // iOS 5 plain text fallback
-                newMessage.content = [newMessage.content stringByAppendingString:@" (edited)"];
+                editedAttrs[NSShadowAttributeName] = shadow;
             }
+            [mutable appendAttributedString:[[NSAttributedString alloc]
+                initWithString:@" (edited)"
+                    attributes:editedAttrs]];
+            newMessage.attributedContent = mutable;
         }
-        // Recalculate cell height after all content mods are done
+
+        // Recalculate cell height after all content modifications
         if (newMessage.attributedContent) {
-            CGRect boundingRect = [newMessage.attributedContent
-                boundingRectWithSize:CGSizeMake(contentWidth, MAXFLOAT)
-                             options:NSStringDrawingUsesLineFragmentOrigin
-                             context:nil];
-            contentSize.height = ceil(boundingRect.size.height);
+            DTCoreTextLayouter *layouter = [[DTCoreTextLayouter alloc] 
+                initWithAttributedString:newMessage.attributedContent];
+            CGRect layoutRect = CGRectMake(0, 0, contentWidth, CGFLOAT_HEIGHT_UNKNOWN);
+            DTCoreTextLayoutFrame *layoutFrame = [layouter layoutFrameWithRect:layoutRect 
+                                                                         range:NSMakeRange(0, 0)];
+            contentSize.height = ceil(CGRectGetHeight(layoutFrame.frame));
         }
+        newMessage.textHeight = ceil(contentSize.height) + 2;
 
 
 
@@ -1540,7 +1541,6 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
     // Get @everyone role
     for (NSDictionary *guildRole in [jsonGuild objectForKey:@"roles"]) {
         if ([[guildRole objectForKey:@"name"] isEqualToString:@"@everyone"]) {
-#warning TODO: do permissions for @everyone
             [newGuild.userRoles addObject:[guildRole objectForKey:@"id"]];
         }
         [newGuild.roles
@@ -1761,9 +1761,7 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
             // ignore perms for guild categories
             if (newChannel.type == DCChannelTypeGuildCategory) { // category
                 [categories addObject:newChannel];
-            } else if (allowCode == 0 || allowCode == 2 || allowCode == 4 ||
-                       [[jsonGuild objectForKey:@"owner_id"] isEqualToString:
-                                                                 DCServerCommunicator.sharedInstance.snowflake]) {
+            } else {
                 [newGuild.channels addObject:newChannel];
             }
         }

@@ -19,13 +19,10 @@
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </imageView>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Content" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="sgr-Yy-T9c">
-                        <rect key="frame" x="53" y="42" width="254" height="21"/>
+                    <view opaque="NO" contentMode="scaleToFill" id="puj-z8-2kC" userLabel="DTAttributedLabel - Content" customClass="DTAttributedLabel">
+                        <rect key="frame" x="55" y="46" width="252" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                        <color key="textColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="calibratedRGB"/>
-                        <nil key="highlightedColor"/>
-                    </label>
+                    </view>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Author" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="38">
                         <rect key="frame" x="55" y="23" width="160" height="21"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -58,15 +55,10 @@
                         <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <size key="shadowOffset" width="0.0" height="1"/>
                     </label>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Content" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ufo-K4-mUs">
+                    <view opaque="NO" contentMode="scaleToFill" id="amd-y3-ncl" userLabel="DTAttributedLabel - Replay Content" customClass="DTAttributedLabel">
                         <rect key="frame" x="115" y="5" width="172" height="16"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                        <color key="textColor" red="0.50269616169999998" green="0.50269616169999998" blue="0.50269616169999998" alpha="1" colorSpace="calibratedRGB"/>
-                        <color key="highlightedColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                        <size key="shadowOffset" width="0.0" height="1"/>
-                    </label>
+                    </view>
                     <view contentMode="scaleToFill" id="N3Z-ch-IQp" userLabel="View - Separator low">
                         <rect key="frame" x="0.0" y="1" width="320" height="1"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -92,10 +84,10 @@
             <color key="backgroundColor" red="0.15686274510000001" green="0.16078431369999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
             <connections>
                 <outlet property="authorLabel" destination="38" id="0Sl-Zd-5L3"/>
-                <outlet property="contentTextView" destination="sgr-Yy-T9c" id="seF-2U-4XO"/>
+                <outlet property="contentTextView" destination="puj-z8-2kC" id="H64-Ff-WTX"/>
                 <outlet property="profileImage" destination="99" id="PI9-KK-UPV"/>
                 <outlet property="referencedAuthorLabel" destination="tgA-We-qXE" id="0eQ-p4-zrs"/>
-                <outlet property="referencedMessage" destination="ufo-K4-mUs" id="qE0-RB-8Hk"/>
+                <outlet property="referencedMessage" destination="amd-y3-ncl" id="TMG-mt-Eqm"/>
                 <outlet property="referencedProfileImage" destination="xKn-f7-9FU" id="Fbs-WX-H7Q"/>
                 <outlet property="timestampLabel" destination="3HZ-iS-aC5" id="X9w-BH-6VH"/>
             </connections>
