@@ -417,6 +417,7 @@
 		2F74240E2F7771D600FAF3D9 /* Badge@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2F74240C2F7771D600FAF3D9 /* Badge@2x.png */; };
 		2F7424112F78A50100FAF3D9 /* MentionBadge.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F7424102F78A50100FAF3D9 /* MentionBadge.m */; };
 		2F97F5572FC2658E00A645B1 /* DCMarkdownParser.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F97F5562FC2658E00A645B1 /* DCMarkdownParser.m */; };
+		2F97F5592FC3F6FD00A645B1 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 2F97F5582FC3F6FD00A645B1 /* libz.dylib */; };
 		2F9B1C732F8F0C9D00B296A1 /* DCContentManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2F9B1C722F8F0C9D00B296A1 /* DCContentManager.m */; };
 		2FD079B22F6E79660021205C /* DCCacheManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 2FD079B12F6E79660021205C /* DCCacheManager.m */; };
 		2FE82DDD2F5D363900375F28 /* separator@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 2FE82DDC2F5D363900375F28 /* separator@2x.png */; };
@@ -1096,6 +1097,7 @@
 		2F7424102F78A50100FAF3D9 /* MentionBadge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MentionBadge.m; sourceTree = "<group>"; };
 		2F97F5552FC2658E00A645B1 /* DCMarkdownParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCMarkdownParser.h; sourceTree = "<group>"; };
 		2F97F5562FC2658E00A645B1 /* DCMarkdownParser.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCMarkdownParser.m; sourceTree = "<group>"; };
+		2F97F5582FC3F6FD00A645B1 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		2F9B1C712F8F0C9D00B296A1 /* DCContentManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCContentManager.h; sourceTree = "<group>"; };
 		2F9B1C722F8F0C9D00B296A1 /* DCContentManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = DCContentManager.m; sourceTree = "<group>"; };
 		2FD079B02F6E79660021205C /* DCCacheManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DCCacheManager.h; sourceTree = "<group>"; };
@@ -1347,6 +1349,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				2F97F5592FC3F6FD00A645B1 /* libz.dylib in Frameworks */,
 				2FFA39962F987D5900E67A40 /* libxml2.dylib in Frameworks */,
 				2FFA39942F987C9000E67A40 /* CoreText.framework in Frameworks */,
 				2F183E4C2F821CE300DFE70B /* MessageUI.framework in Frameworks */,
@@ -1384,6 +1387,7 @@
 		09C6B923204A0F54007EAC26 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				2F97F5582FC3F6FD00A645B1 /* libz.dylib */,
 				2FFA39952F987D5900E67A40 /* libxml2.dylib */,
 				2FFA39932F987C9000E67A40 /* CoreText.framework */,
 				2F183E4B2F821CE300DFE70B /* MessageUI.framework */,

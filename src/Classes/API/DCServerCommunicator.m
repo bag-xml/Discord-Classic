@@ -138,7 +138,7 @@ NSTimer *heartbeatTimer = nil;
 
         // Initialize if a sharedInstance does not yet exist
 
-        sharedInstance.gatewayURL      = @"wss://gateway.discord.gg/?encoding=json&v=9";
+        sharedInstance.gatewayURL      = @"wss://gateway.discord.gg/?encoding=json&v=9&compress=zlib-stream";
         sharedInstance.oldMode         = [[NSUserDefaults standardUserDefaults] boolForKey:@"hackyMode"];
         sharedInstance.dataSaver       = [[NSUserDefaults standardUserDefaults] boolForKey:@"dataSaver"];
         sharedInstance.token           = [[NSUserDefaults standardUserDefaults] stringForKey:@"token"];
@@ -979,6 +979,7 @@ NSTimer *heartbeatTimer = nil;
 #pragma mark - WebSocket Event Handlers
 
 - (void)handleHelloWithData:(NSDictionary *)d {
+    __weak typeof(self) weakSelf = self;
     int heartbeatInterval = [[d objectForKey:@"heartbeat_interval"] intValue];
     if (!heartbeatTimer) {
         float heartbeatSeconds = (float)heartbeatInterval / 1000;
@@ -1019,6 +1020,12 @@ NSTimer *heartbeatTimer = nil;
                 ),
             }
         }];
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(15.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (!weakSelf.didAuthenticate && weakSelf.websocket) {
+                [weakSelf showNonIntrusiveNotificationWithTitle:@"Downloading data…"];
+            }
+        });
         // Disable ability to identify until reenabled 5 seconds later.
         // API only allows once identify every 5 seconds
         self.canIdentify = false;
@@ -1070,6 +1077,7 @@ NSTimer *heartbeatTimer = nil;
 }
 
 - (void)handleDispatchWithResponse:(NSDictionary *)parsedJsonResponse {
+    __weak typeof(self) weakSelf = self;
     // get data
     NSDictionary *d = [parsedJsonResponse objectForKey:@"d"];
 
@@ -1082,16 +1090,17 @@ NSTimer *heartbeatTimer = nil;
         return;
     }
 
-    if ([t isEqualToString:READY]) {
-        @autoreleasepool {
-            [self handleReadyWithData:d];
-        }
+    if ([t isEqualToString:@"READY"]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [weakSelf handleReadyWithData:d];
+        });
         return;
     } else if ([t isEqualToString:PRESENCE_UPDATE_EVENT]) {
         [self handlePresenceUpdateEventWithData:d];
         return;
     } else if ([t isEqualToString:RESUMED]) {
         self.didAuthenticate = true;
+        self.reconnectAttempts = 0;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
             [self dismissNotification];
@@ -1187,6 +1196,7 @@ NSTimer *heartbeatTimer = nil;
 - (void)startCommunicator {
     DBGLOG(@"Starting communicator!");
 
+    [self initInflateStream];
     [self.alertView show];
     self.didAuthenticate = false;
     self.oldMode         = [[NSUserDefaults standardUserDefaults] boolForKey:@"hackyMode"];
@@ -1210,9 +1220,16 @@ NSTimer *heartbeatTimer = nil;
         return;
     }
     // Establish websocket connection with Discord
-    NSURL *websocketUrl          = [NSURL URLWithString:self.gatewayURL];
-    self.websocket               = [[WSWebSocket alloc] initWithURL:websocketUrl protocols:nil];
+    NSURL *websocketUrl = [NSURL URLWithString:self.gatewayURL];
+    WSWebSocket *thisSocket = [[WSWebSocket alloc] initWithURL:websocketUrl protocols:nil];
+    self.websocket = thisSocket;
+
     self.websocket.closeCallback = ^(NSUInteger statusCode, NSString *message) {
+        // If this socket has already been replaced, ignore the callback entirely
+        if (weakSelf.websocket != thisSocket) {
+            DBGLOG(@"Stale closeCallback ignored (socket already replaced)");
+            return;
+        }
         DBGLOG(@"Websocket closed with status code %lu and message: %@", (unsigned long)statusCode, message);
         if (statusCode == 1000) {
             // we closed it, do nothing
@@ -1270,22 +1287,13 @@ NSTimer *heartbeatTimer = nil;
     //         return;
     //     }
     // };
-    self.websocket.textCallback = ^(NSString *responseString) {
-        // #ifdef DEBUG
-        //     NSLog(@"Got response: %@", responseString);
-        // #endif
+    thisSocket.dataCallback = ^(NSData *data) {
+        NSString *responseString = [weakSelf inflateGatewayData:data];
+        if (!responseString) return; // incomplete message, waiting for more frames
 
-        // Parse JSON to a dictionary
         NSDictionary *parsedJsonResponse = [DCTools parseJSON:responseString];
-        // NSLog(responseString);
-
-        // Data values for easy access
         int op          = [[parsedJsonResponse objectForKey:@"op"] integerValue];
         NSDictionary *d = [parsedJsonResponse objectForKey:@"d"];
-
-        // #ifdef DEBUG
-        //     NSLog(@"Got op code %i", op);
-        // #endif
 
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
             switch (op) {
@@ -1346,6 +1354,13 @@ NSTimer *heartbeatTimer = nil;
     };
 
     [self.websocket open];
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8.0 * NSEC_PER_SEC)),
+                   dispatch_get_main_queue(), ^{
+        // Only warn if we're still waiting — if HELLO arrived we'd have moved on
+        if (!weakSelf.sessionId && !weakSelf.didAuthenticate && weakSelf.websocket) {
+            [weakSelf showNonIntrusiveNotificationWithTitle:@"Slow connection…"];
+        }
+    });
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1365,48 +1380,55 @@ NSTimer *heartbeatTimer = nil;
 }
 
 - (void)reconnect {
-    DBGLOG(@"Identify cooldown %s", self.canIdentify ? "true" : "false");
-
+    // Always marshal to main queue to serialize all reconnect logic
     dispatch_async(dispatch_get_main_queue(), ^{
-        [heartbeatTimer invalidate]; // Invalidate because we're disconnected
-        heartbeatTimer = nil;
-    });
-    // Begin new session
-    [self.websocket close];
-    self.websocket = nil;
-    if (self.oldMode == NO) {
-        [self showNonIntrusiveNotificationWithTitle:@"Reconnecting..."];
-    } else {
-        [self.alertView show];
-    }
-
-    // If an identify cooldown is in effect, wait for the time needed until sending another IDENTIFY
-    // if not, send immediately
-    NSTimeInterval timeRemaining = [self.cooldownTimer.fireDate timeIntervalSinceNow];
-    if (self.canIdentify || timeRemaining <= 0) {
-        DBGLOG(@"No cooldown in effect. Authenticating...");
-        [self.alertView setTitle:@"Authenticating..."];
-        [self startCommunicator];
-    } else {
-        DBGLOG(@"Cooldown in effect. Time left %lf", timeRemaining);
-        [self.alertView setTitle:@"Waiting for auth cooldown..."];
-        if (self.oldMode == NO) {
-            [self showNonIntrusiveNotificationWithTitle:@"Awaiting cooldown..."];
+        // Reentrance guard — drop duplicate calls while one is already queued
+        if (self.isReconnecting) {
+            DBGLOG(@"Reconnect already in progress, ignoring duplicate call");
+            return;
         }
-        [self performSelector:@selector(reconnect) withObject:nil afterDelay:timeRemaining + 1];
-    }
+        self.isReconnecting = YES;
 
-    self.canIdentify = false;
+        // Tear down existing connection cleanly
+        [heartbeatTimer invalidate];
+        heartbeatTimer = nil;
+        if (self.websocket) {
+            [self.websocket close];
+            [self resetInflateStream];
+            self.websocket = nil;
+        }
+
+        // Exponential backoff: 1s, 2s, 4s, 8s, ... capped at 60s
+        NSTimeInterval backoff = MIN(pow(2.0, (double)self.reconnectAttempts), 60.0);
+        self.reconnectAttempts++;
+
+        // Also respect the identify cooldown if one is in effect
+        NSTimeInterval cooldownRemaining = self.cooldownTimer 
+            ? MAX(0.0, [self.cooldownTimer.fireDate timeIntervalSinceNow]) 
+            : 0.0;
+        NSTimeInterval delay = MAX(backoff, cooldownRemaining);
+
+        DBGLOG(@"Reconnecting in %.1f seconds (attempt %ld)", delay, (long)self.reconnectAttempts);
+        [self showNonIntrusiveNotificationWithTitle:@"Reconnecting..."];
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            self.isReconnecting = NO;
+            // Double-check we haven't been asked to stop (e.g. logout)
+            if (!self.token) return;
+            [self startCommunicator];
+        });
+    });
 }
 
 - (void)jitterBeat:(NSTimer *)timer {
-    self.gotHeartbeat = false;
+    // Don't reset gotHeartbeat here — send the first heartbeat
+    // but let the ACK arrive before arming the failure check
     [self sendJSON:@{
         @"op" : @(DCGatewayOpCodeHeartbeat),
         @"d" : @(self.sequenceNumber)
     }];
     DBGLOG(@"Sending jitterbeat, starting heartbeat cycle");
-    // Begin heartbeat cycle
     float heartbeatInterval = [[timer.userInfo objectForKey:@"heartbeatInterval"] floatValue];
     dispatch_async(dispatch_get_main_queue(), ^{
         heartbeatTimer = [NSTimer scheduledTimerWithTimeInterval:heartbeatInterval
@@ -1418,26 +1440,97 @@ NSTimer *heartbeatTimer = nil;
 }
 
 - (void)sendHeartbeat:(NSTimer *)timer {
-    // Check that we've recieved a response since the last heartbeat
-    if (self.gotHeartbeat) {
-        [self sendJSON:@{
-            @"op" : @(DCGatewayOpCodeHeartbeat),
-            @"d" : @(self.sequenceNumber)
-        }];
-        DBGLOG(@"Sent heartbeat");
-        self.gotHeartbeat = false;
-    } else {
-        // If we didnt get a response in between heartbeats, we've disconnected from the websocket
-        // send a RESUME to reconnect
-        DBGLOG(@"Did not get heartbeat response before next heartbeat, sending RESUME with sequence %li %@ (sendHeartbeat)", (long)self.sequenceNumber, self.sessionId);
+    if (!self.gotHeartbeat) {
+        if (!self.didAuthenticate) {
+            DBGLOG(@"Missing heartbeat ACK pre-READY, giving connection more time");
+            return;
+        }
+        DBGLOG(@"Did not get heartbeat response, reconnecting...");
         [self reconnect];
+        return;
     }
+    // ACK was received — send next heartbeat and arm the check for next interval
+    self.gotHeartbeat = false;
+    [self sendJSON:@{
+        @"op" : @(DCGatewayOpCodeHeartbeat),
+        @"d" : @(self.sequenceNumber)
+    }];
+    DBGLOG(@"Sent heartbeat");
 }
 
 // Once the 5 second identify cooldown is over
 - (void)refreshcanIdentify:(NSTimer *)timer {
     self.canIdentify = true;
     DBGLOG(@"Authentication cooldown ended");
+}
+
+- (void)initInflateStream {
+    if (self.inflateStreamReady) {
+        inflateEnd(&_inflateStream);
+    }
+    memset(&_inflateStream, 0, sizeof(z_stream));
+    int ret = inflateInit(&_inflateStream);
+    if (ret != Z_OK) {
+        DBGLOG(@"zlib inflateInit failed: %d", ret);
+        self.inflateStreamReady = NO;
+        return;
+    }
+    self.inflateStreamReady = YES;
+    self.compressedBuffer = [NSMutableData dataWithCapacity:4096];
+    DBGLOG(@"zlib inflate stream initialized");
+}
+
+- (void)resetInflateStream {
+    if (self.inflateStreamReady) {
+        inflateEnd(&_inflateStream);
+        self.inflateStreamReady = NO;
+    }
+    self.compressedBuffer = nil;
+}
+
+- (NSString *)inflateGatewayData:(NSData *)data {
+    if (!self.inflateStreamReady) return nil;
+
+    [self.compressedBuffer appendData:data];
+
+    // Check for zlib sync flush suffix: 0x00 0x00 0xFF 0xFF
+    // Discord appends this to every complete message
+    NSUInteger len = self.compressedBuffer.length;
+    if (len < 4) return nil;
+    const uint8_t *bytes = self.compressedBuffer.bytes;
+    if (bytes[len-4] != 0x00 || bytes[len-3] != 0x00 ||
+        bytes[len-2] != 0xFF || bytes[len-1] != 0xFF) {
+        // Message not complete yet — more frames incoming
+        return nil;
+    }
+
+    // Inflate the complete message
+    NSMutableData *decompressed = [NSMutableData dataWithCapacity:len * 4];
+    uint8_t outBuffer[32768];
+
+    _inflateStream.next_in  = (Bytef *)self.compressedBuffer.bytes;
+    _inflateStream.avail_in = (uInt)len;
+
+    int ret;
+    do {
+        _inflateStream.next_out  = outBuffer;
+        _inflateStream.avail_out = sizeof(outBuffer);
+        ret = inflate(&_inflateStream, Z_SYNC_FLUSH);
+        if (ret < 0) {
+            DBGLOG(@"zlib inflate error: %d (%s)", ret,
+                   _inflateStream.msg ? _inflateStream.msg : "unknown");
+            [self resetInflateStream];
+            [self initInflateStream]; // recover for next connection
+            return nil;
+        }
+        [decompressed appendBytes:outBuffer
+                           length:sizeof(outBuffer) - _inflateStream.avail_out];
+    } while (_inflateStream.avail_in > 0);
+
+    // Clear buffer for next message — but keep the z_stream context alive
+    [self.compressedBuffer setLength:0];
+
+    return [[NSString alloc] initWithData:decompressed encoding:NSUTF8StringEncoding];
 }
 
 - (void)sendJSON:(NSDictionary *)dictionary {
@@ -1472,6 +1565,9 @@ NSTimer *heartbeatTimer = nil;
     self.sequenceNumber = 0;
     [self.websocket close];
     self.websocket = nil;
+    [self resetInflateStream];
+    self.isReconnecting = NO;
+    self.reconnectAttempts = 0;
 }
 
 @end
