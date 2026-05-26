@@ -23,6 +23,14 @@ typedef NS_ENUM(NSUInteger, DCMarkdownBlockType) {
     DCMarkdownBlockTypeBlockquote,
 };
 
+typedef NS_ENUM(NSInteger, DCMarkdownBackgroundStyle) {
+    DCMarkdownBackgroundStyleTag,        // user/channel/role mentions — blueish purple
+    DCMarkdownBackgroundStyleTimestamp,  // grey
+    DCMarkdownBackgroundStyleCode,       // near black
+    DCMarkdownBackgroundStyleSpoilerHidden,  // dark grey foreground covers text
+    DCMarkdownBackgroundStyleSpoilerRevealed // grey background, text visible
+};
+
 @interface DCMarkdownParser : NSObject
 
 + (instancetype)sharedParser;
@@ -53,5 +61,11 @@ typedef NS_ENUM(NSUInteger, DCMarkdownBlockType) {
 @property (nonatomic, strong) UIColor *blockquoteColor;
 @property (nonatomic, strong) UIColor *subtextColor;
 @property (nonatomic, strong) UIColor *strikethroughColor;
+
+// Helpers
+- (void)applyBackgroundStyle:(DCMarkdownBackgroundStyle)style
+                     toRange:(NSRange)range
+                    inString:(NSMutableAttributedString *)string
+               overrideColor:(UIColor *)overrideColor; // nil = use default
 
 @end

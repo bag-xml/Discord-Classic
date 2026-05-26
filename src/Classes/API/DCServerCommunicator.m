@@ -322,6 +322,7 @@ NSTimer *heartbeatTimer = nil;
 
 - (void)handleReadyWithData:(NSDictionary *)d {
     self.didAuthenticate = true;
+    self.reconnectAttempts = 0;
     DBGLOG(@"Did authenticate!");
     if (self.oldMode == NO) {
         dispatch_async(dispatch_get_main_queue(), ^{
@@ -1104,6 +1105,7 @@ NSTimer *heartbeatTimer = nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
             [self dismissNotification];
+            [NSNotificationCenter.defaultCenter postNotificationName:@"CONNECTION_RESTORED" object:nil];
         });
         return;
     } else if ([t isEqualToString:MESSAGE_CREATE]) {
@@ -1334,15 +1336,21 @@ NSTimer *heartbeatTimer = nil;
                 }
                 case DCGatewayOpCodeInvalidSession: {
                     if ([(NSNumber *)d boolValue]) {
-                        // If the session is valid, we can resume (rare)
-                        DBGLOG(@"INVALID_SESSION: Session is valid, resuming...");
+                        // Session is resumable — Discord says wait 1-5s before retrying
+                        DBGLOG(@"INVALID_SESSION: resumable, retrying in 2s...");
+                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)),
+                                       dispatch_get_main_queue(), ^{
+                            [weakSelf reconnect];
+                        });
                     } else {
-                        // If the session is invalid, we need to reconnect and start a new session
-                        DBGLOG(@"INVALID_SESSION: Session was invalidated, re-identifying...");
+                        // Hard invalidation — drop session state and do a clean identify
+                        DBGLOG(@"INVALID_SESSION: invalidated, clearing session and reconnecting...");
                         weakSelf.sequenceNumber = 0;
                         weakSelf.sessionId      = nil;
+                        dispatch_async(dispatch_get_main_queue(), ^{
+                            [weakSelf reconnect];
+                        });
                     }
-                    [weakSelf reconnect];
                     break;
                 }
                 default: {

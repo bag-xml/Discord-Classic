@@ -38,7 +38,7 @@
 + (MentionBadge *)badgeWithCount:(NSInteger)count {
     MentionBadge *badge = [[MentionBadge alloc] initWithFrame:CGRectZero];
     badge.mentionCount = count;
-    NSLog(@"[MentionBadge] count=%ld frame=%@", (long)count, NSStringFromCGRect(badge.frame));
+    // NSLog(@"[MentionBadge] count=%ld frame=%@", (long)count, NSStringFromCGRect(badge.frame));
     return badge;
 }
 

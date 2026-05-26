@@ -47,6 +47,8 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    // Guard against duplicate registration on viewDidLoad re-fire (iOS 5 memory warning)
+    [NSNotificationCenter.defaultCenter removeObserver:self];
 
     // Go to settings if no token is set
     if (!DCServerCommunicator.sharedInstance.token.length) {
@@ -99,6 +101,14 @@
            selector:@selector(exitedChatController)
                name:@"ChannelSelectionCleared"
              object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleChannelContextChanged:)
+                                                 name:@"CHANNEL_CONTEXT_CHANGED"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(handleNavigateToGuild:)
+                                                 name:@"NAVIGATE_TO_GUILD"
+                                               object:nil];
     // NOTIF OBSERVERS END
     [self.navigationController.navigationBar
         setBackgroundImage:[UIImage imageNamed:@"TbarBG"]
@@ -113,6 +123,16 @@
                 action:@selector(handleLongPress:)];
     longPress.minimumPressDuration          = 0.5; // seconds
     [self.channelTableView addGestureRecognizer:longPress];
+}
+
+- (void)viewDidUnload {
+    [NSNotificationCenter.defaultCenter removeObserver:self];
+    // nil IBOutlets
+    self.guildTableView = nil;
+    self.channelTableView = nil;
+    self.refreshControl = nil;
+    // ... nil any other IBOutlets
+    [super viewDidUnload];
 }
 
 - (void)handleLongPress:(UILongPressGestureRecognizer *)gestureRecognizer {
@@ -207,6 +227,51 @@
                           forControlEvents:UIControlEventValueChanged];
         }
     });
+}
+
+- (void)handleChannelContextChanged:(NSNotification *)notification {
+    NSString *channelId = notification.userInfo[@"channelId"];
+    if (!channelId) return;
+    
+    for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
+        for (DCChannel *channel in guild.channels) {
+            if (![channel.snowflake isEqualToString:channelId]) continue;
+            
+            self.selectedGuild = guild;
+            self.selectedChannel = channel;
+            DCServerCommunicator.sharedInstance.selectedGuild = guild;
+            
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.navigationItem setTitle:guild.name];
+                self.guildLabel.text = guild.name;
+                [self.channelTableView reloadData];
+            });
+            return;
+        }
+    }
+}
+
+- (void)handleNavigateToGuild:(NSNotification *)notification {
+    NSString *guildId = notification.userInfo[@"guildId"];
+    if (!guildId) return;
+    
+    for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
+        if (![guild.snowflake isEqualToString:guildId]) continue;
+        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.selectedGuild = guild;
+            DCServerCommunicator.sharedInstance.selectedGuild = guild;
+            [self.navigationItem setTitle:guild.name];
+            self.guildLabel.text = guild.name;
+            if (self.selectedGuild.banner) {
+                self.guildBanner.image = self.selectedGuild.banner;
+            } else {
+                self.guildBanner.image = [UIImage imageNamed:@"No-Header"];
+            }
+            [self.channelTableView reloadData];
+        });
+        return;
+    }
 }
 
 - (void)reloadGuild:(NSNotification *)notification {

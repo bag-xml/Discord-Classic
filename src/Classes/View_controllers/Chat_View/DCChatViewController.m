@@ -184,6 +184,10 @@ static dispatch_queue_t chat_messages_queue;
                                            selector:@selector(handleReady)
                                                name:@"READY"
                                              object:nil];
+    [NSNotificationCenter.defaultCenter addObserver:self
+                                           selector:@selector(handleConnectionRestored)
+                                               name:@"CONNECTION_RESTORED"
+                                             object:nil];
 
     [NSNotificationCenter.defaultCenter
         addObserver:self
@@ -438,6 +442,75 @@ static dispatch_queue_t chat_messages_queue;
     if (VERSION_MIN(@"6.0") && self.refreshControl) {
         [self.refreshControl endRefreshing];
     }
+}
+
+- (void)handleConnectionRestored {
+    assertMainThread();
+
+    // Only backfill if we have messages loaded and are watching present time
+    if (!self.messages || self.messages.count == 0 || !self.viewingPresentTime) {
+        return;
+    }
+
+    DCChannel *channel    = DCServerCommunicator.sharedInstance.selectedChannel;
+    DCMessage *lastMessage = [self.messages lastObject];
+    if (!channel || !lastMessage) {
+        return;
+    }
+
+    NSString *lastSnowflake = lastMessage.snowflake;
+
+    dispatch_async([self get_chat_messages_queue], ^{
+        NSArray *newMessages = [channel getMessages:50 afterMessage:lastMessage];
+        if (!newMessages || newMessages.count == 0) {
+            return;
+        }
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            // Dedup — gateway replay may have already inserted some of these
+            // via MESSAGE_CREATE before the REST backfill completed
+            NSMutableArray *toInsert = NSMutableArray.new;
+            for (DCMessage *msg in newMessages) {
+                BOOL alreadyPresent = NO;
+                for (DCMessage *existing in self.messages) {
+                    if ([existing.snowflake isEqualToString:msg.snowflake]) {
+                        alreadyPresent = YES;
+                        break;
+                    }
+                }
+                if (!alreadyPresent) {
+                    [toInsert addObject:msg];
+                }
+            }
+
+            if (toInsert.count == 0) {
+                return;
+            }
+
+            // Verify we're still in the same channel before touching the table
+            if (DCServerCommunicator.sharedInstance.selectedChannel != channel) {
+                return;
+            }
+
+            NSMutableArray *indexPaths = NSMutableArray.new;
+            for (DCMessage *msg in toInsert) {
+                NSIndexPath *path = [NSIndexPath indexPathForRow:self.messages.count inSection:0];
+                [self.messages addObject:msg];
+                [indexPaths addObject:path];
+            }
+
+            [self.chatTableView beginUpdates];
+            [self.chatTableView insertRowsAtIndexPaths:indexPaths
+                                     withRowAnimation:UITableViewRowAnimationNone];
+            [self.chatTableView endUpdates];
+
+            // Scroll to bottom since we were at present time
+            [self scrollWithIndex:[indexPaths lastObject]];
+
+            NSLog(@"[CONNECTION_RESTORED] Backfilled %lu messages after %@",
+                  (unsigned long)toInsert.count, lastSnowflake);
+        });
+    });
 }
 
 - (BOOL)scrollWithIndex:(NSIndexPath *)idx {
@@ -1523,6 +1596,13 @@ static dispatch_queue_t chat_messages_queue;
             // TOCK(content);
 
             cell.profileImage.image = messageAtRowIndex.author.profileImage;
+            cell.profileImage.userInteractionEnabled = YES;
+
+            UITapGestureRecognizer *profileTap = [[UITapGestureRecognizer alloc]
+                initWithTarget:self
+                        action:@selector(profileImageTapped:)];
+            profileTap.numberOfTapsRequired = 1;
+            [cell.profileImage addGestureRecognizer:profileTap];
 
             if ((self.replyingToMessage
                      && [self.replyingToMessage.snowflake
@@ -1704,7 +1784,7 @@ static dispatch_queue_t chat_messages_queue;
         cell.configuredSnowflake = messageAtRowIndex.snowflake;
         cell.configuredWidth = self.chatTableView.bounds.size.width;
         CFAbsoluteTime cellEnd = CFAbsoluteTimeGetCurrent();
-            NSLog(@"[Cell] configuration took %.2fms", (cellEnd - cellStart) * 1000);
+            // NSLog(@"[Cell] configuration took %.2fms", (cellEnd - cellStart) * 1000);
         }
     }
     return cell;
@@ -1819,12 +1899,133 @@ static dispatch_queue_t chat_messages_queue;
                                  frame:(CGRect)frame {
     DTLinkButton *button = [[DTLinkButton alloc] initWithFrame:frame];
     button.URL = url;
-    [button addTarget:self action:@selector(linkButtonTapped:) forControlEvents:UIControlEventTouchUpInside];
+    
+    if ([[url scheme] isEqualToString:@"discord-spoiler"]) {
+        [button addTarget:self 
+                   action:@selector(spoilerButtonTapped:) 
+         forControlEvents:UIControlEventTouchUpInside];
+    } else {
+        [button addTarget:self 
+                   action:@selector(linkButtonTapped:) 
+         forControlEvents:UIControlEventTouchUpInside];
+    }
     return button;
 }
 
 - (void)linkButtonTapped:(DTLinkButton *)button {
-    [[UIApplication sharedApplication] openURL:button.URL];
+    NSURL *url = button.URL;
+    NSString *scheme = url.scheme;
+    
+    if ([scheme isEqualToString:@"discord-user"]) {
+        NSString *snowflake = url.host;
+        DCUser *user = [DCServerCommunicator.sharedInstance userForSnowflake:snowflake];
+        if (user) {
+            [self openUserProfile:user];
+        }
+    } else if ([scheme isEqualToString:@"discord-channel"]) {
+        NSString *snowflake = url.host;
+        DCChannel *channel = [DCServerCommunicator.sharedInstance.channels objectForKey:snowflake];
+        if (channel) {
+            [self navigateToChannel:channel];
+        }
+    } else if ([scheme isEqualToString:@"discord-role"]) {
+        // Role taps — no action for now
+    } else if ([scheme isEqualToString:@"https"] || [scheme isEqualToString:@"http"]) {
+        // Check for Discord channel deep link
+        if ([[url host] isEqualToString:@"discord.com"] &&
+            [[url path] hasPrefix:@"/channels/"]) {
+            NSArray *components = [url.path componentsSeparatedByString:@"/"];
+            // path is /channels/{guild_id}/{channel_id}
+            // components: [@"", @"channels", @"{guild_id}", @"{channel_id}"]
+            if (components.count >= 4) {
+                NSString *channelId = components[3];
+                DCChannel *channel = [DCServerCommunicator.sharedInstance.channels 
+                    objectForKey:channelId];
+                if (channel) {
+                    [self navigateToChannel:channel];
+                    return;
+                }
+            } else if (components.count == 3) {
+                NSString *guildId = components[2];
+                DCGuild *guild = nil;
+                for (DCGuild *g in DCServerCommunicator.sharedInstance.guilds) {
+                    if ([g.snowflake isEqualToString:guildId]) {
+                        guild = g;
+                        break;
+                    }
+                }
+                if (guild) {
+                    [self navigateToGuild:guild];
+                    return;
+                }
+            }
+        }
+        [[UIApplication sharedApplication] openURL:url];
+    } else {
+        [[UIApplication sharedApplication] openURL:url];
+    }
+}
+
+- (void)spoilerButtonTapped:(DTLinkButton *)button {
+    // Find which cell contains this button
+    UIView *view = button.superview;
+    while (view && ![view isKindOfClass:[DCChatTableCell class]]) {
+        view = view.superview;
+    }
+    if (!view) return;
+    DCChatTableCell *cell = (DCChatTableCell *)view;
+    
+    // Get the attributed string and find the spoiler range
+    NSMutableAttributedString *mutable = [cell.contentTextView.attributedString mutableCopy];
+    if (!mutable) return;
+    
+    // Walk the attributed string looking for DTLinkAttribute matching this URL
+    [mutable enumerateAttribute:DTLinkAttribute
+                        inRange:NSMakeRange(0, mutable.length)
+                        options:0
+                     usingBlock:^(id value, NSRange range, BOOL *stop) {
+        if (![value isKindOfClass:[NSURL class]]) return;
+        NSURL *linkURL = (NSURL *)value;
+        if (![[linkURL absoluteString] isEqualToString:[button.URL absoluteString]]) return;
+        
+        // Apply revealed style to this range
+        [[DCMarkdownParser sharedParser] applyBackgroundStyle:DCMarkdownBackgroundStyleSpoilerRevealed
+                                                      toRange:range
+                                                     inString:mutable
+                                                overrideColor:nil];
+        // Remove the link so it can't be tapped again
+        [mutable removeAttribute:DTLinkAttribute range:range];
+        [mutable removeAttribute:DCMarkdownSpoilerAttributeName range:range];
+        
+        *stop = YES;
+    }];
+    
+    // Update the label with the revealed attributed string
+    cell.contentTextView.attributedString = mutable;
+    [cell.contentTextView relayoutText];
+}
+
+- (void)profileImageTapped:(UITapGestureRecognizer *)recognizer {
+    UIView *view = recognizer.view.superview;
+    while (view && ![view isKindOfClass:[DCChatTableCell class]]) {
+        view = view.superview;
+    }
+    if (!view) return;
+
+    NSIndexPath *indexPath = [self.chatTableView indexPathForCell:(DCChatTableCell *)view];
+    if (!indexPath) return;
+
+    DCMessage *message = [self.messages objectAtIndex:indexPath.row];
+    if (!message.author) return;
+
+    [self openUserProfile:message.author];
+}
+
+- (void)openUserProfile:(DCUser *)user {
+    if (!user) return;
+    self.selectedMessage = [[DCMessage alloc] init];
+    self.selectedMessage.author = user;
+    [self performSegueWithIdentifier:@"chat to contact" sender:self];
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -2548,6 +2749,39 @@ static dispatch_queue_t chat_messages_queue;
     dispatch_async(dispatch_get_main_queue(), ^{
         [self.chatTableView reloadData];
     });
+}
+
+- (void)navigateToChannel:(DCChannel *)channel {
+    if (!channel) return;
+    
+    DCServerCommunicator.sharedInstance.selectedChannel = channel;
+    
+    // Update DCMenuViewController state without seguing
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"CHANNEL_CONTEXT_CHANGED"
+                      object:nil
+                    userInfo:@{@"channelId": channel.snowflake}];
+    
+    // Swap chat in place
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"NUKE CHAT DATA" object:nil];
+    self.navigationItem.title = channel.type == 0 
+        ? [@"#" stringByAppendingString:channel.name] 
+        : channel.name;
+    self.viewingPresentTime = YES;
+    [self getMessages:50 beforeMessage:nil];
+}
+
+- (void)navigateToGuild:(DCGuild *)guild {
+    if (!guild) return;
+    
+    // Tell DCMenuViewController to switch to this guild
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:@"NAVIGATE_TO_GUILD"
+                      object:nil
+                    userInfo:@{@"guildId": guild.snowflake}];
+    
+    // Pop back to menu
+    [self.navigationController popViewControllerAnimated:YES];
 }
 
 - (void)viewWillDisappear:(BOOL)animated {

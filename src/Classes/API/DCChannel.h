@@ -62,4 +62,5 @@ typedef NS_ENUM(NSInteger, DCChannelType) {
 - (void)sendData:(NSData*)data mimeType:(NSString*)type;
 - (void)sendVideo:(NSURL*)videoURL mimeType:(NSString*)type;
 - (NSArray*)getMessages:(int)numberOfMessages beforeMessage:(DCMessage*)message;
+- (NSArray*)getMessages:(int)numberOfMessages afterMessage:(DCMessage*)message;
 @end

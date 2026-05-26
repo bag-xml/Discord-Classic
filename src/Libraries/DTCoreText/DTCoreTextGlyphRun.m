@@ -167,10 +167,27 @@
 		
 		if (backgroundColor)
 		{
-			CGRect backgroundColorRect = CGRectIntegral(CGRectMake(runStrokeBounds.origin.x, lineFrame.origin.y, runStrokeBounds.size.width, lineFrame.size.height));
-			
-			CGContextSetFillColorWithColor(context, backgroundColor.CGColor);
-			CGContextFillRect(context, backgroundColorRect);
+		    CGFloat cornerRadius = [[_attributes objectForKey:DTBackgroundCornerRadiusAttribute] floatValue];
+		    CGFloat hPadding = 0.0f;
+		    CGFloat vPadding = 1.0f;
+		    
+		    CGRect backgroundColorRect = CGRectIntegral(CGRectMake(
+		        runStrokeBounds.origin.x - hPadding,
+		        lineFrame.origin.y - vPadding - 1.0f,
+		        runStrokeBounds.size.width + (hPadding * 2),
+		        lineFrame.size.height + (vPadding * 2)
+		    ));
+		    
+		    CGContextSetFillColorWithColor(context, backgroundColor.CGColor);
+		    
+		    if (cornerRadius > 0) {
+		        UIBezierPath *path = [UIBezierPath bezierPathWithRoundedRect:backgroundColorRect 
+		                                                        cornerRadius:cornerRadius];
+		        CGContextAddPath(context, path.CGPath);
+		        CGContextFillPath(context);
+		    } else {
+		        CGContextFillRect(context, backgroundColorRect);
+		    }
 		}
 		
 		if (drawStrikeOut || drawUnderline)

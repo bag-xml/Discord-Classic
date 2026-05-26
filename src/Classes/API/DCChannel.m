@@ -813,4 +813,83 @@ static dispatch_queue_t channel_send_queue;
     return nil;
 }
 
+- (NSArray *)getMessages:(int)numberOfMessages
+            afterMessage:(DCMessage *)message {
+    NSMutableArray *messages = NSMutableArray.new;
+    NSData *response         = nil;
+
+    NSMutableString *path = [NSMutableString
+        stringWithFormat:@"/channels/%@/messages?", self.snowflake];
+
+    if (numberOfMessages) {
+        [path appendString:[NSString stringWithFormat:@"limit=%d", numberOfMessages]];
+    }
+    if (numberOfMessages && message) {
+        [path appendString:@"&"];
+    }
+    if (message) {
+        [path appendString:[NSString stringWithFormat:@"after=%@", message.snowflake]];
+    }
+
+    NSMutableURLRequest *urlRequest = [DCServerCommunicator
+        requestWithPath:path
+                  token:DCServerCommunicator.sharedInstance.token];
+    [urlRequest setValue:@"no-store" forHTTPHeaderField:@"Cache-Control"];
+
+    NSError *error                  = nil;
+    NSHTTPURLResponse *responseCode = nil;
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = YES;
+    });
+
+    NSData *uncheckedResponse = nil;
+    NSInteger maxRetries      = 3;
+    NSInteger attempt         = 0;
+    while (attempt < maxRetries && !uncheckedResponse) {
+        uncheckedResponse = [NSURLConnection sendSynchronousRequest:urlRequest
+                                                  returningResponse:&responseCode
+                                                              error:&error];
+        if (!uncheckedResponse || responseCode.statusCode != 200) {
+            attempt++;
+            if (attempt < maxRetries) {
+                NSLog(@"[DCChannel] afterMessage request failed, retrying (%ld/%ld)...", (long)attempt, (long)maxRetries);
+                [NSThread sleepForTimeInterval:1.0];
+                uncheckedResponse = nil;
+            }
+        } else {
+            break;
+        }
+    }
+
+    response = [DCTools checkData:uncheckedResponse withError:error];
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
+    });
+
+    if (!response || responseCode == nil || responseCode.statusCode != 200) {
+        return nil;
+    }
+
+    dispatch_sync(dispatch_get_main_queue(), ^{
+        NSError *parseError = nil;
+        NSArray *parsedResponse = [NSJSONSerialization JSONObjectWithData:response
+                                                                  options:0
+                                                                    error:&parseError];
+        if (parseError || parsedResponse.count <= 0) {
+            return;
+        }
+
+        // after= returns messages in ascending order (oldest first),
+        // so we append rather than insert at index 0
+        for (NSDictionary *jsonMessage in parsedResponse) {
+            DCMessage *convertedMessage = [DCTools convertJsonMessage:jsonMessage];
+            if (convertedMessage) {
+                [messages addObject:convertedMessage];
+            }
+        }
+    });
+
+    return messages.count > 0 ? messages : nil;
+}
+
 @end

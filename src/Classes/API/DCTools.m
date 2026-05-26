@@ -1170,168 +1170,12 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                     (void)[DCTools convertJsonUser:mention cache:true];
                 }
             }
-
-            static dispatch_once_t onceToken;
-            static NSRegularExpression *regex;
-            dispatch_once(&onceToken, ^{
-                regex = [NSRegularExpression
-                    regularExpressionWithPattern:@"\\<@(.*?)\\>"
-                                         options:NSRegularExpressionCaseInsensitive
-                                           error:NULL];
-            });
-
-            NSTextCheckingResult *embeddedMention = [regex
-                firstMatchInString:newMessage.content
-                           options:0
-                             range:NSMakeRange(0, newMessage.content.length)];
-
-            while (embeddedMention) {
-                NSCharacterSet *charactersToRemove =
-                    [NSCharacterSet.alphanumericCharacterSet invertedSet];
-                NSString *mentionSnowflake =
-                    [[[newMessage.content substringWithRange:embeddedMention.range]
-                        componentsSeparatedByCharactersInSet:charactersToRemove]
-                        componentsJoinedByString:@""];
-
-                DCUser *user = [DCServerCommunicator.sharedInstance userForSnowflake:mentionSnowflake];
-
-                DCRole *role = [DCServerCommunicator.sharedInstance roleForSnowflake:mentionSnowflake];
-
-                for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
-                    if ([guild.userRoles containsObject:mentionSnowflake]) {
-                        newMessage.pingingUser = true;
-                    }
-                }
-
-                if ([mentionSnowflake
-                        isEqualToString:DCServerCommunicator.sharedInstance
-                                            .snowflake]) {
-                    newMessage.pingingUser = true;
-                } else if ([DCServerCommunicator.sharedInstance.selectedGuild
-                                   .userRoles containsObject:mentionSnowflake]) {
+            // role ping check
+            for (NSString *roleSnowflake in mentionRoles) {
+                if ([DCServerCommunicator.sharedInstance.selectedGuild.userRoles 
+                        containsObject:roleSnowflake]) {
                     newMessage.pingingUser = true;
                 }
-
-                NSString *mentionName = @"@MENTION";
-
-                if (user) {
-                    mentionName = [NSString stringWithFormat:@"@%@", user.username];
-                } else if (role) {
-                    mentionName = [NSString stringWithFormat:@"@%@", role.name];
-                }
-
-                newMessage.content = [newMessage.content
-                    stringByReplacingCharactersInRange:embeddedMention.range
-                                            withString:mentionName];
-
-                embeddedMention = [regex
-                    firstMatchInString:newMessage.content
-                               options:0
-                                 range:NSMakeRange(0, newMessage.content.length)];
-            }
-        }
-
-        {
-            // channels
-            static dispatch_once_t onceToken;
-            static NSRegularExpression *regex;
-            dispatch_once(&onceToken, ^{
-                regex = [NSRegularExpression
-                    regularExpressionWithPattern:@"\\<#(.*?)\\>"
-                                         options:NSRegularExpressionCaseInsensitive
-                                           error:NULL];
-            });
-
-            NSTextCheckingResult *embeddedMention = [regex
-                firstMatchInString:newMessage.content
-                           options:0
-                             range:NSMakeRange(0, newMessage.content.length)];
-            while (embeddedMention) {
-                NSCharacterSet *charactersToRemove =
-                    [NSCharacterSet.alphanumericCharacterSet invertedSet];
-                NSString *channelSnowflake =
-                    [[[newMessage.content substringWithRange:embeddedMention.range]
-                        componentsSeparatedByCharactersInSet:charactersToRemove]
-                        componentsJoinedByString:@""];
-
-                NSString *mentionName = @"#CHANNEL";
-                DCChannel *channel    = [DCServerCommunicator.sharedInstance.channels objectForKey:channelSnowflake];
-                if (channel) {
-                    mentionName = [NSString stringWithFormat:@"#%@", channel.name];
-                }
-
-                newMessage.content = [newMessage.content
-                    stringByReplacingCharactersInRange:embeddedMention.range
-                                            withString:mentionName];
-
-                embeddedMention = [regex
-                    firstMatchInString:newMessage.content
-                               options:0
-                                 range:NSMakeRange(0, newMessage.content.length)];
-            }
-        }
-
-        {
-            // <t:timestamp:format>
-            static dispatch_once_t onceToken;
-            static NSRegularExpression *regex;
-            dispatch_once(&onceToken, ^{
-                regex = [NSRegularExpression
-                    regularExpressionWithPattern:@"\\<t:(\\d+)(?::(\\w+))?\\>"
-                                         options:NSRegularExpressionCaseInsensitive
-                                           error:NULL];
-            });
-            NSTextCheckingResult *embeddedMention = [regex
-                firstMatchInString:newMessage.content
-                           options:0
-                             range:NSMakeRange(0, newMessage.content.length)];
-            while (embeddedMention) {
-                NSRange timestampRange = [embeddedMention rangeAtIndex:1];
-                if (timestampRange.location == NSNotFound || 
-                    timestampRange.location + timestampRange.length > newMessage.content.length) {
-                    break;
-                }
-                NSString *timestamp = [newMessage.content substringWithRange:timestampRange];
-                
-                // Format is optional — default to "f" if not present
-                NSString *format = nil;
-                NSRange formatRange = [embeddedMention rangeAtIndex:2];
-                if (formatRange.location != NSNotFound && 
-                    formatRange.location + formatRange.length <= newMessage.content.length) {
-                    format = [newMessage.content substringWithRange:formatRange];
-                }
-                
-                NSDate *date          = [NSDate dateWithTimeIntervalSince1970:[timestamp longLongValue]];
-                NSString *replacement = @"TIME";
-                if (date) {
-                    prettyDateFormatter.doesRelativeDateFormatting = NO;
-                    if (!format || [format isEqualToString:@"f"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterShortStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterFullStyle;
-                    } else if (format && [format isEqualToString:@"F"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterFullStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterFullStyle;
-                    } else if (format && [format isEqualToString:@"R"]) {
-                        prettyDateFormatter.dateStyle                  = NSDateFormatterShortStyle;
-                        prettyDateFormatter.timeStyle                  = NSDateFormatterShortStyle;
-                        prettyDateFormatter.doesRelativeDateFormatting = YES;
-                    } else if (format && [format isEqualToString:@"D"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterMediumStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterNoStyle;
-                    } else if (format && [format isEqualToString:@"d"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterShortStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterNoStyle;
-                    } else if (format && [format isEqualToString:@"t"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterNoStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterShortStyle;
-                    } else if (format && [format isEqualToString:@"T"]) {
-                        prettyDateFormatter.dateStyle = NSDateFormatterNoStyle;
-                        prettyDateFormatter.timeStyle = NSDateFormatterMediumStyle;
-                    }
-                    replacement = [prettyDateFormatter stringFromDate:date];
-                }
-                newMessage.content = [newMessage.content stringByReplacingCharactersInRange:embeddedMention.range withString:replacement];
-                embeddedMention    = [regex firstMatchInString:newMessage.content options:0 range:NSMakeRange(0, newMessage.content.length)];
             }
         }
 
@@ -1341,10 +1185,6 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                                                      withString:@"™"];
         content = [content stringByReplacingOccurrencesOfString:@"\u00AE\uFE0F"
                                                      withString:@"®"];
-
-        // if (newMessage.editedTimestamp != nil) {
-        //     content = [content stringByAppendingString:@" (edited)"];
-        // }
 
         {
             newMessage.emojis = NSMutableArray.new;
