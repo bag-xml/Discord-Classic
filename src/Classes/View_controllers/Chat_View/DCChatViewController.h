@@ -51,5 +51,6 @@
 @property (strong, nonatomic) DCMessage *selectedMessage;
 @property (strong, nonatomic) UIPopoverController *imagePopoverController;
 @property (strong, nonatomic) NSURL *selectedImageURL;
+@property (assign, nonatomic) BOOL backgroundRefreshInProgress;
 
 @end

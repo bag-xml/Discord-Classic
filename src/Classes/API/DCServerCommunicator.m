@@ -1407,13 +1407,6 @@ NSTimer *heartbeatTimer = nil;
     };
 
     [self.websocket open];
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8.0 * NSEC_PER_SEC)),
-                   dispatch_get_main_queue(), ^{
-        // Only warn if we're still waiting — if HELLO arrived we'd have moved on
-        if (!weakSelf.sessionId && !weakSelf.didAuthenticate && weakSelf.websocket) {
-            [weakSelf showNonIntrusiveNotificationWithTitle:@"Slow connection…"];
-        }
-    });
 }
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
@@ -1451,6 +1444,13 @@ NSTimer *heartbeatTimer = nil;
             self.websocket = nil;
         }
 
+        if (self.guilds.count > 0 && self.selectedChannel) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [NSNotificationCenter.defaultCenter postNotificationName:@"BACKGROUND_RECONNECT"
+                                                                  object:nil];
+            });
+        }
+
         // Exponential backoff: 1s, 2s, 4s, 8s, ... capped at 60s
         NSTimeInterval backoff = MIN(pow(2.0, (double)self.reconnectAttempts), 60.0);
         self.reconnectAttempts++;
@@ -1462,7 +1462,10 @@ NSTimer *heartbeatTimer = nil;
         NSTimeInterval delay = MAX(backoff, cooldownRemaining);
 
         DBGLOG(@"Reconnecting in %.1f seconds (attempt %ld)", delay, (long)self.reconnectAttempts);
-        [self showNonIntrusiveNotificationWithTitle:@"Reconnecting..."];
+        NSString *bannerTitle = (self.guilds.count > 0 && self.selectedChannel)
+            ? @"Refreshing..."
+            : @"Reconnecting...";
+        [self showNonIntrusiveNotificationWithTitle:bannerTitle];
 
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delay * NSEC_PER_SEC)),
                        dispatch_get_main_queue(), ^{

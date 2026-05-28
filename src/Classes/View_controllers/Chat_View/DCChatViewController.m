@@ -107,6 +107,7 @@ static dispatch_queue_t chat_messages_queue;
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    [NSNotificationCenter.defaultCenter removeObserver:self];
 
     DBGLOG(@"%s: Loading chat view controller", __PRETTY_FUNCTION__);
 
@@ -193,6 +194,10 @@ static dispatch_queue_t chat_messages_queue;
     [NSNotificationCenter.defaultCenter addObserver:self
                                            selector:@selector(handleConnectionRestored)
                                                name:@"CONNECTION_RESTORED"
+                                             object:nil];
+    [NSNotificationCenter.defaultCenter addObserver:self
+                                           selector:@selector(handleBackgroundReconnect)
+                                               name:@"BACKGROUND_RECONNECT"
                                              object:nil];
 
     [NSNotificationCenter.defaultCenter
@@ -418,38 +423,66 @@ static dispatch_queue_t chat_messages_queue;
         // NSLog(@"async reload!");
         //  about contact CoreControl
         @autoreleasepool {
-
-            // old cache REMOVE LATER
-            // [self.heightCache removeAllObjects];
             [[DCCacheManager sharedInstance] invalidateAllMessages];
             [self.chatTableView reloadData];
         }
     });
 }
 
+// - (void)handleReady {
+//     assertMainThread();
+//     if (DCServerCommunicator.sharedInstance.selectedChannel) {
+//         @autoreleasepool {
+//             [self.messages removeAllObjects];
+//         }
+//         self.inputFieldPlaceholder.text     = DCServerCommunicator.sharedInstance.selectedChannel.writeable
+//                 ? [NSString stringWithFormat:@"Message%@%@",
+//                                          ![DCServerCommunicator.sharedInstance.selectedChannel.parentGuild.name isEqualToString:@"Direct Messages"]
+//                                                  ? @" #"
+//                                                  : (DCServerCommunicator.sharedInstance.selectedChannel.recipients.count > 2 ? @" " : @" @"),
+//                                          DCServerCommunicator.sharedInstance.selectedChannel.name]
+//                 : @"No Permission";
+//         self.toolbar.userInteractionEnabled = DCServerCommunicator.sharedInstance.selectedChannel.writeable;
+//         [self handleAsyncReload];
+//         [self getMessages:50 beforeMessage:nil];
+//     }
+
+//     if (VERSION_MIN(@"6.0") && self.refreshControl) {
+//         [self.refreshControl endRefreshing];
+//     }
+// }
+
 - (void)handleReady {
     assertMainThread();
     if (DCServerCommunicator.sharedInstance.selectedChannel) {
-        @autoreleasepool {
-            [self.messages removeAllObjects];
+        if (self.messages.count == 0) {
+            @autoreleasepool {
+                [self.messages removeAllObjects];
+            }
+            [self getMessages:50 beforeMessage:nil];
+            // Only run the full reload setup on a cold load
+            self.chatTableView.height = self.view.height - self.keyboardHeight - self.toolbar.height;
+            self.typingIndicatorView.y = self.view.height - self.keyboardHeight - self.toolbar.height - 20;
+            [self.chatTableView setContentOffset:CGPointMake(0, self.chatTableView.contentSize.height - self.chatTableView.frame.size.height)
+                                        animated:NO];
+            [self handleAsyncReload];
         }
-        self.inputFieldPlaceholder.text     = DCServerCommunicator.sharedInstance.selectedChannel.writeable
-                ? [NSString stringWithFormat:@"Message%@%@",
-                                         ![DCServerCommunicator.sharedInstance.selectedChannel.parentGuild.name isEqualToString:@"Direct Messages"]
-                                                 ? @" #"
-                                                 : (DCServerCommunicator.sharedInstance.selectedChannel.recipients.count > 2 ? @" " : @" @"),
-                                         DCServerCommunicator.sharedInstance.selectedChannel.name]
-                : @"No Permission";
+        // Always update UI state
+        self.inputFieldPlaceholder.text = DCServerCommunicator.sharedInstance.selectedChannel.writeable
+            ? [NSString stringWithFormat:@"Message%@%@",
+               ![DCServerCommunicator.sharedInstance.selectedChannel.parentGuild.name isEqualToString:@"Direct Messages"]
+                   ? @" #"
+                   : (DCServerCommunicator.sharedInstance.selectedChannel.recipients.count > 2 ? @" " : @" @"),
+               DCServerCommunicator.sharedInstance.selectedChannel.name]
+            : @"No Permission";
         self.toolbar.userInteractionEnabled = DCServerCommunicator.sharedInstance.selectedChannel.writeable;
-        [self handleAsyncReload];
-        [self getMessages:50 beforeMessage:nil];
+        self.typingIndicatorView.hidden = YES;
     }
-
     if (VERSION_MIN(@"6.0") && self.refreshControl) {
         [self.refreshControl endRefreshing];
     }
 }
-
+    
 - (void)handleConnectionRestored {
     assertMainThread();
 
@@ -515,6 +548,42 @@ static dispatch_queue_t chat_messages_queue;
 
             NSLog(@"[CONNECTION_RESTORED] Backfilled %lu messages after %@",
                   (unsigned long)toInsert.count, lastSnowflake);
+        });
+    });
+}
+
+- (void)handleBackgroundReconnect {
+    assertMainThread();
+    if (self.backgroundRefreshInProgress) {
+        return;
+    }
+    if (!self.messages || self.messages.count == 0) {
+        return;
+    }
+    DCChannel *channel = DCServerCommunicator.sharedInstance.selectedChannel;
+    if (!channel) {
+        return;
+    }
+    self.backgroundRefreshInProgress = YES;
+
+    dispatch_async([self get_chat_messages_queue], ^{
+        NSArray *freshMessages = [channel getMessages:50 beforeMessage:nil];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            self.backgroundRefreshInProgress = NO;
+
+            if (!freshMessages || freshMessages.count == 0) {
+                return;
+            }
+            if (DCServerCommunicator.sharedInstance.selectedChannel != channel) {
+                return;
+            }
+            [self.messages removeAllObjects];
+            [self.messages addObjectsFromArray:freshMessages];
+            [[DCCacheManager sharedInstance] invalidateAllMessages];
+            [self.chatTableView reloadData];
+            [self scrollWithIndex:[NSIndexPath indexPathForRow:self.messages.count - 1
+                                                     inSection:0]];
         });
     });
 }
@@ -2786,6 +2855,33 @@ static dispatch_queue_t chat_messages_queue;
     
     // Pop back to menu
     [self.navigationController popViewControllerAnimated:YES];
+}
+
+- (void)viewDidUnload {
+    [super viewDidUnload];
+
+    // Invalidate all pending typing timers before clearing —
+    // they hold a reference to self as target and will fire into
+    // freed memory if not cancelled
+    for (NSTimer *timer in self.typingUsers.allValues) {
+        [timer invalidate];
+    }
+    [self.typingUsers removeAllObjects];
+
+    // Remove programmatically created views from hierarchy
+    [self.typingIndicatorView removeFromSuperview];
+    self.typingIndicatorView = nil;
+    self.typingLabel         = nil;
+
+    // Nil weak IBOutlets — non-ARC __unsafe_unretained outlets are
+    // never zeroed automatically on view unload
+    self.chatTableView          = nil;
+    self.toolbar                = nil;
+    self.toolbarBG              = nil;
+    self.inputField             = nil;
+    self.inputFieldPlaceholder  = nil;
+    self.inputView              = nil;
+    self.messageFieldBG         = nil;
 }
 
 - (void)viewWillDisappear:(BOOL)animated {
