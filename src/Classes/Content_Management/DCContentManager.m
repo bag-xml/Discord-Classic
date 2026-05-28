@@ -9,6 +9,8 @@
 #import "DCContentManager.h"
 #import "DCUser.h"
 #import "UILazyImage.h"
+#import "DCEmoji.h"
+#include "SDWebImageManager.h"
 
 @implementation DCContentManager
 
@@ -98,6 +100,7 @@
 }
 
 // --- DM Icon processing ---
+
 + (UIImage *)processedIcon:(UIImage *)image context:(DCAssetContext)context {
     if (!image) return nil;
 
@@ -185,6 +188,38 @@
     UIGraphicsEndImageContext();
     result.imageURL = url;
     return result;
+}
+
+// --- Emoji processing ---
+
++ (void)fetchEmojiImage:(DCEmoji *)emoji {
+    if (!emoji || !emoji.snowflake) return;
+    if (emoji.image && emoji.image.size.width > 0) return; // already loaded
+    if (emoji.image) return;                               // sentinel set, download in progress
+
+    emoji.image = [UIImage new]; // sentinel to block duplicate fetches
+
+    NSString *ext    = emoji.animated ? @"gif" : @"png";
+    NSURL *emojiURL  = [NSURL URLWithString:[NSString stringWithFormat:
+        @"https://cdn.discordapp.com/emojis/%@.%@?size=32", emoji.snowflake, ext]];
+
+    [[SDWebImageManager sharedManager]
+        downloadImageWithURL:emojiURL
+                     options:SDWebImageRetryFailed
+                    progress:nil
+                   completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                       if (!image || !finished) {
+                           NSLog(@"[DCContentManager] Failed to load emoji '%@': %@", emoji.name, error);
+                           emoji.image = nil; // clear sentinel so a retry is possible
+                           return;
+                       }
+                       emoji.image = image;
+                       dispatch_async(dispatch_get_main_queue(), ^{
+                           [[NSNotificationCenter defaultCenter]
+                               postNotificationName:@"EMOJI IMAGE READY"
+                                             object:emoji.snowflake];
+                       });
+                   }];
 }
 
 @end

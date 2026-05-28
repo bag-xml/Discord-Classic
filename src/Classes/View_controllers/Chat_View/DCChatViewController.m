@@ -38,6 +38,7 @@
 #import "DCMarkdownParser.h"
 #import "DTCoreTextLayouter.h"
 #import "DTCoreTextLayoutFrame.h"
+#import "DTImageTextAttachment.h"
 
 @interface DCChatViewController ()
 @property (strong, nonatomic) NSMutableArray *messages;
@@ -145,6 +146,11 @@ static dispatch_queue_t chat_messages_queue;
         addObserver:self
            selector:@selector(handleMessageEdit:)
                name:@"MESSAGE EDIT"
+             object:nil];
+    [NSNotificationCenter.defaultCenter 
+        addObserver:self
+           selector:@selector(emojiImageReady:)
+               name:@"EMOJI IMAGE READY"
              object:nil];
 
     [NSNotificationCenter.defaultCenter
@@ -1399,13 +1405,6 @@ static dispatch_queue_t chat_messages_queue;
                     }
                 }
             }
-            for (UIView *subView in cell.contentTextView.subviews) {
-                @autoreleasepool {
-                    if (subView.tag == 9001) {
-                        [subView removeFromSuperview];
-                    }
-                }
-            }
 
             [cell.contentTextView removeAllCustomViewsForLinks];
             [cell.referencedMessage removeAllCustomViewsForLinks];
@@ -1414,8 +1413,13 @@ static dispatch_queue_t chat_messages_queue;
                 cell.referencedAuthorLabel.text = [messageAtRowIndex.referencedMessage.author 
                     displayNameInGuild:DCServerCommunicator.sharedInstance.selectedChannel.parentGuild];
                 
-                NSAttributedString *referencedContent = messageAtRowIndex.referencedMessage.attributedContent
-                    ?: [[DCMarkdownParser sharedParser] attributedStringFromMarkdown:messageAtRowIndex.referencedMessage.content];
+                NSAttributedString *referencedContent = [[DCMarkdownParser sharedParser]
+                    attributedStringFromMarkdown:messageAtRowIndex.referencedMessage.content
+                                     maxFontSize:10.0f
+                                           color:[UIColor colorWithRed:128/255.0f
+                                                                green:128/255.0f
+                                                                 blue:128/255.0f
+                                                                alpha:1.0f]];
                 cell.referencedMessage.attributedString = referencedContent;
                 
                 cell.referencedMessage.frame = CGRectMake(
@@ -1546,51 +1550,6 @@ static dispatch_queue_t chat_messages_queue;
                     currentTextHeight
                 );
                 [cell.contentTextView relayoutText];
-            }
-
-            // Emoji handling iOS 5
-            if (messageAtRowIndex.emojis.count > 0) {
-                UIFont *font = [UIFont systemFontOfSize:14];
-                CGFloat lineHeight = font.lineHeight;
-                CGFloat textViewWidth = contentWidth;
-
-                for (NSArray *emojiInfo in messageAtRowIndex.emojis) {
-                    DCEmoji *emoji     = emojiInfo[0];
-                    NSNumber *location = emojiInfo[1];
-                    NSUInteger loc     = location.unsignedIntegerValue;
-
-                    if (loc >= messageAtRowIndex.content.length) continue;
-
-                    NSString *textUpToEmoji = [messageAtRowIndex.content substringToIndex:loc];
-
-                    CGFloat emojiY, emojiX;
-                    if (textUpToEmoji.length == 0) {
-                        emojiY = 0;
-                        emojiX = 0;
-                    } else {
-                        CGSize sizeUpToEmoji = [textUpToEmoji
-                                 sizeWithFont:font
-                            constrainedToSize:CGSizeMake(textViewWidth, MAXFLOAT)
-                                lineBreakMode:(NSLineBreakMode)UILineBreakModeWordWrap];
-                        emojiY = sizeUpToEmoji.height - lineHeight;
-                        NSRange lastNewline = [textUpToEmoji
-                            rangeOfCharacterFromSet:[NSCharacterSet newlineCharacterSet]
-                                            options:NSBackwardsSearch];
-                        NSString *lastLineText = (lastNewline.location != NSNotFound)
-                            ? [textUpToEmoji substringFromIndex:lastNewline.location + 1]
-                            : textUpToEmoji;
-                        CGSize lastLineSize = [lastLineText
-                                 sizeWithFont:font
-                            constrainedToSize:CGSizeMake(textViewWidth, lineHeight)
-                                lineBreakMode:(NSLineBreakMode)UILineBreakModeWordWrap];
-                        emojiX = lastLineSize.width;
-                    }
-                    
-                    UIImageView *emojiImageView = [[UIImageView alloc] initWithFrame:CGRectMake(emojiX + 8, emojiY + 9, 18, 18)];
-                    emojiImageView.image = emoji.image;
-                    emojiImageView.tag   = 9001;
-                    [cell.contentTextView addSubview:emojiImageView];
-                }
             }
 
             // TOCK(content);
@@ -1910,6 +1869,51 @@ static dispatch_queue_t chat_messages_queue;
          forControlEvents:UIControlEventTouchUpInside];
     }
     return button;
+}
+
+- (UIView *)attributedTextContentView:(DTAttributedTextContentView *)attributedTextContentView
+                    viewForAttachment:(DTTextAttachment *)attachment
+                                frame:(CGRect)frame {
+    if (![attachment isKindOfClass:[DTImageTextAttachment class]]) return nil;
+
+    DTImageTextAttachment *imageAttachment = (DTImageTextAttachment *)attachment;
+    NSURL *url = imageAttachment.contentURL;
+    if (![[url scheme] isEqualToString:@"discord-emoji"]) return nil;
+
+    DCEmoji *emoji = [DCServerCommunicator.sharedInstance emojiForSnowflake:url.host];
+
+    CGRect emojiFrame = frame;
+    emojiFrame.origin.y += 3.0f;
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:emojiFrame];
+    imageView.contentMode  = UIViewContentModeScaleAspectFit;
+    if (emoji.image && emoji.image.size.width > 0) {
+        imageView.image = emoji.image;
+    }
+    return imageView;
+}
+
+- (void)emojiImageReady:(NSNotification *)notification {
+    // Refresh visible cells that have attachment runs so they pick up
+    // the newly loaded emoji image via viewForAttachment:frame:
+    for (UITableViewCell *cell in self.chatTableView.visibleCells) {
+        if (![cell isKindOfClass:[DCChatTableCell class]]) continue;
+        DCChatTableCell *chatCell = (DCChatTableCell *)cell;
+        if (!chatCell.contentTextView.attributedString) continue;
+
+        __block BOOL hasAttachment = NO;
+        [chatCell.contentTextView.attributedString
+            enumerateAttribute:NSAttachmentAttributeName
+                       inRange:NSMakeRange(0, chatCell.contentTextView.attributedString.length)
+                       options:0
+                    usingBlock:^(id value, NSRange range, BOOL *stop) {
+                        if (value) { hasAttachment = YES; *stop = YES; }
+                    }];
+
+        if (hasAttachment) {
+            [chatCell.contentTextView removeAllCustomViews];
+            [chatCell.contentTextView relayoutText];
+        }
+    }
 }
 
 - (void)linkButtonTapped:(DTLinkButton *)button {

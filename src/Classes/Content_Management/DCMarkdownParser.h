@@ -38,6 +38,19 @@ typedef NS_ENUM(NSInteger, DCMarkdownBackgroundStyle) {
 // Primary parse method — returns CoreText-compatible attributed string
 - (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown;
 
+// Convenience variant for compact contexts (e.g. referenced message labels).
+// Fonts are capped at maxFontSize, all text and accent colors are overridden
+// with color, and minimumLineHeight is zeroed so CoreText uses natural metrics.
+- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown
+                                         maxFontSize:(CGFloat)maxFontSize
+                                               color:(UIColor *)color;
+
+
+// Controls the CTParagraphStyle minimum line height used in baseAttributes.
+// Defaults to 18pt (normal chat). Set to 0 to use CoreText natural metrics
+// (required for compact reply labels whose frame height is less than 18pt).
+@property (nonatomic, assign) CGFloat minimumLineHeight;
+
 // Inline fonts
 @property (nonatomic, strong) UIFont *defaultFont;
 @property (nonatomic, strong) UIFont *boldFont;

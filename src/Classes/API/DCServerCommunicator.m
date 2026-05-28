@@ -163,6 +163,10 @@ NSTimer *heartbeatTimer = nil;
         } else {
             [sharedInstance showNonIntrusiveNotificationWithTitle:@"Connecting..."];
         }
+        [NSNotificationCenter.defaultCenter addObserver:sharedInstance
+                                               selector:@selector(handleForegroundEntry)
+                                                   name:UIApplicationWillEnterForegroundNotification
+                                                 object:nil];
     });
 
     return sharedInstance;
@@ -690,6 +694,17 @@ NSTimer *heartbeatTimer = nil;
     dispatch_async(dispatch_get_main_queue(), ^{
         [NSNotificationCenter.defaultCenter postNotificationName:@"MENTION_COUNT_UPDATED" object:nil];
     });
+    // Re-resolve selectedChannel from fresh READY data and re-subscribe
+    if (self.selectedChannel) {
+        NSString *channelSnowflake = self.selectedChannel.snowflake;
+        DCChannel *freshChannel = [self.channels objectForKey:channelSnowflake];
+        if (freshChannel && freshChannel.parentGuild) {
+            self.selectedChannel = freshChannel;
+            [self sendGuildSubscriptionWithGuildId:freshChannel.parentGuild.snowflake
+                                         channelId:freshChannel.snowflake];
+            DBGLOG(@"[READY] Re-subscribed to channel %@ after reconnect", channelSnowflake);
+        }
+    }
     dispatch_async(dispatch_get_main_queue(), ^{
         [NSNotificationCenter.defaultCenter postNotificationName:@"READY" object:self];
         // Dismiss the 'reconnecting' dialogue box
@@ -1105,7 +1120,6 @@ NSTimer *heartbeatTimer = nil;
         dispatch_async(dispatch_get_main_queue(), ^{
             [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
             [self dismissNotification];
-            [NSNotificationCenter.defaultCenter postNotificationName:@"CONNECTION_RESTORED" object:nil];
         });
         return;
     } else if ([t isEqualToString:MESSAGE_CREATE]) {
@@ -1191,6 +1205,36 @@ NSTimer *heartbeatTimer = nil;
         DBGLOG(@"Unhandled event type: %@, content: %@", t, d);
         return;
     }
+}
+
+- (void)handleForegroundEntry {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!self.didAuthenticate || !self.websocket) {
+            return;
+        }
+
+        DBGLOG(@"[Foreground] Sending probe heartbeat");
+        [self sendHeartbeat:nil];
+
+        NSDate *probeTime = [NSDate date];
+
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5.0 * NSEC_PER_SEC)),
+                       dispatch_get_main_queue(), ^{
+            if (!self.didAuthenticate) {
+                return;
+            }
+            BOOL ackReceived = self.lastHeartbeatAckDate &&
+                               [self.lastHeartbeatAckDate timeIntervalSinceDate:probeTime] > 0;
+            if (!ackReceived) {
+                DBGLOG(@"[Foreground] No heartbeat ACK after probe — reconnecting");
+                [self reconnect];
+            } else {
+                DBGLOG(@"[Foreground] Connection confirmed live");
+                [NSNotificationCenter.defaultCenter postNotificationName:@"CONNECTION_RESTORED"
+                                                                  object:nil];
+            }
+        });
+    });
 }
 
 #pragma mark - WebSocket Handlers
@@ -1324,6 +1368,7 @@ NSTimer *heartbeatTimer = nil;
                     DBGLOG(@"Got heartbeat ack in %f seconds!", [now timeIntervalSinceDate:previousFireDate]);
 #endif
                     weakSelf.gotHeartbeat = true;
+                    weakSelf.lastHeartbeatAckDate = [NSDate date];
                     dispatch_async(dispatch_get_main_queue(), ^{
                         [UIApplication sharedApplication].networkActivityIndicatorVisible = NO;
                     });

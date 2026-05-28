@@ -236,6 +236,7 @@ typedef NS_ENUM(uint64_t, DCGatewayCapabilities) {
 @interface DCServerCommunicator : NSObject<UIAlertViewDelegate>
 
 @property (strong, nonatomic) WSWebSocket* websocket;
+@property (strong, nonatomic) NSDate *lastHeartbeatAckDate;
 @property (strong, nonatomic) NSString* token;
 @property (assign, nonatomic) BOOL dataSaver;
 @property (strong, nonatomic) DCUserInfo* currentUserInfo;

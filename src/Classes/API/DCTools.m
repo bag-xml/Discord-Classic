@@ -1187,24 +1187,21 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                                                      withString:@"®"];
 
         {
-            newMessage.emojis = NSMutableArray.new;
-            // emojis
-            NSRegularExpression *regex            = [NSRegularExpression
+            // Register custom emoji metadata and kick off image prefetch.
+            // Tokens are left intact in `content` — DCMarkdownParser owns
+            // the <a:name:id> / <:name:id> → attachment run conversion.
+            NSRegularExpression *regex = [NSRegularExpression
                 regularExpressionWithPattern:@"\\<(a?):(.*?):(\\d+)\\>"
                                      options:NSRegularExpressionCaseInsensitive
                                        error:NULL];
-            NSTextCheckingResult *embeddedMention = [regex
-                firstMatchInString:content
-                           options:0
-                             range:NSMakeRange(0, content.length)];
-            while (embeddedMention) {
-                BOOL isAnimated     = [[content substringWithRange:[embeddedMention rangeAtIndex:1]] isEqualToString:@"a"];
-                NSString *emojiName = [content substringWithRange:[embeddedMention rangeAtIndex:2]];
-                NSString *emojiID   = [content substringWithRange:[embeddedMention rangeAtIndex:3]];
-                // https://cdn.discordapp.com/emojis/%@.png
-                content        = [content
-                    stringByReplacingCharactersInRange:embeddedMention.range
-                                            withString:@"\u00A0\u00A0\u00A0\u00A0\u00A0\u200B"];
+            NSArray *matches = [regex matchesInString:content
+                                              options:0
+                                                range:NSMakeRange(0, content.length)];
+            for (NSTextCheckingResult *match in matches) {
+                BOOL isAnimated     = [[content substringWithRange:[match rangeAtIndex:1]] isEqualToString:@"a"];
+                NSString *emojiName = [content substringWithRange:[match rangeAtIndex:2]];
+                NSString *emojiID   = [content substringWithRange:[match rangeAtIndex:3]];
+
                 DCEmoji *emoji = [DCServerCommunicator.sharedInstance emojiForSnowflake:emojiID];
                 if (!emoji) {
                     emoji           = [DCEmoji new];
@@ -1213,27 +1210,7 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                     emoji.animated  = isAnimated;
                     [DCServerCommunicator.sharedInstance setEmoji:emoji forSnowflake:emoji.snowflake];
                 }
-                if (emoji && !emoji.image) {
-                    emoji.image                = [UIImage new];
-                    NSURL *emojiURL            = [NSURL URLWithString:[NSString
-                                                               stringWithFormat:@"https://cdn.discordapp.com/emojis/%@.%@?size=32",
-                                                                                emoji.snowflake,
-                                                                                emoji.animated ? @"gif" : @"png"]];
-                    SDWebImageManager *manager = [SDWebImageManager sharedManager];
-                    [manager downloadImageWithURL:emojiURL
-                                          options:SDWebImageRetryFailed
-                                         progress:nil
-                                        completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
-                                            if (!image || !finished) {
-                                                NSLog(@"Failed to load emoji image with URL %@: %@", emojiURL, error);
-                                                return;
-                                            }
-                                            // NSLog(@"Loaded emoji %@", emoji.name);
-                                            emoji.image = image;
-                                        }];
-                }
-                [newMessage.emojis addObject:@[ emoji, @(embeddedMention.range.location) ]];
-                embeddedMention = [regex firstMatchInString:content options:0 range:NSMakeRange(0, content.length)];
+                [DCContentManager fetchEmojiImage:emoji];
             }
         }
 
@@ -1261,25 +1238,6 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
             if (attributedText) {
                 newMessage.attributedContent = attributedText;
                 newMessage.content = attributedText.string;
-                // recalc emoji positions — markdown link replacement can shorten the string
-                NSRange range = NSMakeRange(0, newMessage.content.length);
-                for (NSUInteger idx = 0; idx < newMessage.emojis.count; idx++) {
-                    NSArray *emojiInfo = newMessage.emojis[idx];
-                    DCEmoji *emoji = emojiInfo[0];
-                    NSNumber *location = emojiInfo[1];
-                    NSRange found = [newMessage.content rangeOfString:@"\u00A0\u00A0\u00A0\u00A0\u200B"
-                                                  options:NSLiteralSearch
-                                                    range:range];
-                    if (found.location == NSNotFound) {
-                        DBGLOG(@"Failed to find emoji %@ in content %@", emoji.name, newMessage.content);
-                        break;
-                    }
-                    if (found.location != [location unsignedIntValue]) {
-                        [newMessage.emojis replaceObjectAtIndex:idx withObject:@[ emoji, @(found.location) ]];
-                    }
-                    range.location = found.location + found.length;
-                    range.length = newMessage.content.length - range.location;
-                }
                 // Recalculate height using DTCoreText layout engine for accuracy
                 if (newMessage.attributedContent) {
                     DTCoreTextLayouter *layouter = [[DTCoreTextLayouter alloc] 
@@ -1309,15 +1267,13 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                 (NSString *)kCTForegroundColorAttributeName: (__bridge id)[UIColor colorWithRed:128/255.0f
                                                                                           green:128/255.0f
                                                                                            blue:128/255.0f
-                                                                                          alpha:1.0f].CGColor
+                                                                                          alpha:1.0f].CGColor,
+                DTShadowsAttribute: @[ @{
+                    @"Offset": [NSValue valueWithCGSize:CGSizeMake(0, 1)],
+                    @"Blur":   @(0.0f),
+                    @"Color":  [UIColor blackColor]
+                }]
             } mutableCopy];
-            if (VERSION_MIN(@"6.0")) {
-                NSShadow *shadow = [NSShadow new];
-                shadow.shadowColor = [UIColor blackColor];
-                shadow.shadowOffset = CGSizeMake(0, 1);
-                shadow.shadowBlurRadius = 0;
-                editedAttrs[NSShadowAttributeName] = shadow;
-            }
             [mutable appendAttributedString:[[NSAttributedString alloc]
                 initWithString:@" (edited)"
                     attributes:editedAttrs]];

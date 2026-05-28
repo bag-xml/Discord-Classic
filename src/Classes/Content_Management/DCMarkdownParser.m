@@ -6,13 +6,14 @@
 //  Copyright (c) 2026 Ayeris All rights reserved.
 //
 //  Parses Discord markdown into CoreText-compatible NSAttributedStrings.
-//  Safe for use on iOS 5+. Add -fobjc-arc to this file's compiler flags
-//  in Build Phases > Compile Sources.
+//  Safe for use on iOS 5+.
 //
 
 #import "DCMarkdownParser.h"
 #import "DTCoreTextConstants.h"
 #import "DCServerCommunicator.h"
+#import "DCEmoji.h"
+#import "DTImageTextAttachment.h"
 #import <CoreText/CoreText.h>
 
 // Constants defined here, declared extern in header
@@ -21,6 +22,11 @@ NSString *const DCMarkdownSpoilerAttributeName   = @"DCMarkdownSpoiler";
 
 // Internal spoiler URL scheme used with DTCoreText link delegate
 static NSString *const kDCSpoilerScheme = @"discord-spoiler";
+
+// Emoji Callbacks
+static CGFloat DCEmojiGetAscent(void *refCon)  { return 14.0f; }
+static CGFloat DCEmojiGetDescent(void *refCon) { return 4.0f;  }
+static CGFloat DCEmojiGetWidth(void *refCon)   { return 20.0f; }
 
 
 @implementation DCMarkdownParser
@@ -66,6 +72,8 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
     _blockquoteColor    = [UIColor colorWithRed:163/255.0f green:166/255.0f blue:170/255.0f alpha:1.0f];
     _subtextColor       = [UIColor colorWithRed:230/255.0f green:230/255.0f blue:230/255.0f alpha:1.0f];
     _strikethroughColor = _defaultColor;
+
+    _minimumLineHeight = 18.0f;
 }
 
 
@@ -87,7 +95,7 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
 // so they are safe on iOS 5 and consumed natively by DTAttributedLabel.
 
 - (NSDictionary *)baseAttributes {
-    CGFloat minLineHeight = 18.0f;
+    CGFloat minLineHeight = _minimumLineHeight;
     CTParagraphStyleSetting settings[] = {
         { kCTParagraphStyleSpecifierMinimumLineHeight, sizeof(CGFloat), &minLineHeight }
     };
@@ -154,6 +162,7 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
     [self applyMultilineCodeBlocks:result protectedRanges:protectedRanges];
     [self applyBlockLevelFormatting:result protectedRanges:protectedRanges];
     [self applyInlineFormatting:result protectedRanges:protectedRanges];
+    [self applyCustomEmojis:result protectedRanges:protectedRanges];
     [self applyMentions:result protectedRanges:protectedRanges];
     [self applyURLDetection:result protectedRanges:protectedRanges];
 
@@ -161,6 +170,54 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
     [self applyEscapes:result protectedRanges:protectedRanges];
         
     return [result copy];
+}
+
+- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown
+                                         maxFontSize:(CGFloat)maxFontSize
+                                               color:(UIColor *)color {
+    DCMarkdownParser *p = [[DCMarkdownParser alloc] init];
+
+    // Cap every font variant at maxFontSize
+    p.defaultFont    = [UIFont systemFontOfSize:maxFontSize];
+    p.boldFont       = [UIFont boldSystemFontOfSize:maxFontSize];
+    p.italicFont     = [UIFont italicSystemFontOfSize:maxFontSize];
+    p.boldItalicFont = [UIFont fontWithName:@"Helvetica-BoldOblique" size:maxFontSize];
+    p.codeFont       = [UIFont fontWithName:@"Courier" size:maxFontSize];
+    p.underlineFont  = [UIFont systemFontOfSize:maxFontSize];
+    p.h1Font         = [UIFont boldSystemFontOfSize:maxFontSize];
+    p.h2Font         = [UIFont boldSystemFontOfSize:maxFontSize];
+    p.h3Font         = [UIFont boldSystemFontOfSize:maxFontSize];
+    p.subtextFont    = [UIFont systemFontOfSize:maxFontSize];
+
+    // Override all color slots with the requested color
+    p.defaultColor       = color;
+    p.linkColor          = color;
+    p.mentionColor       = color;
+    p.codeTextColor      = color;
+    p.spoilerHiddenColor = color;
+    p.blockquoteColor    = color;
+    p.subtextColor       = color;
+    p.strikethroughColor = color;
+
+    // Zero the minimum line height so CoreText uses natural 10pt metrics —
+    // the reply label is only 16px tall and the default 18pt floor would
+    // push text outside the frame, making the label appear blank.
+    p.minimumLineHeight = 0.0f;
+
+    NSMutableAttributedString *result = [[p attributedStringFromMarkdown:markdown] mutableCopy];
+
+    NSDictionary *shadowDict = @{
+        @"Offset": [NSValue valueWithCGSize:CGSizeMake(0, 1)],
+        @"Blur":   @(0.0f),
+        @"Color":  [UIColor blackColor]
+    };
+    [result addAttribute:DTShadowsAttribute
+                   value:@[ shadowDict ]
+                   range:NSMakeRange(0, result.length)];
+
+    return [result copy];
+
+    return [p attributedStringFromMarkdown:markdown];
 }
 
 - (void)stripSyntaxMarkers:(NSMutableAttributedString *)string {
@@ -904,7 +961,7 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
                                          options:0
                                            range:NSMakeRange(0, string.string.length)];
 
-    for (NSTextCheckingResult *match in matches) {
+    for (NSTextCheckingResult *match in [matches reverseObjectEnumerator]) {
         if ([self range:match.range isProtectedBy:protectedRanges]) continue;
         
         // Skip URLs wrapped in angle brackets — these belong to markdown links
@@ -975,6 +1032,66 @@ static NSString *const kDCSpoilerScheme = @"discord-spoiler";
             };
             [string addAttributes:attrs range:match.range];
         }
+    }
+}
+
+#pragma mark - Custom Emoji Attachments
+
+- (void)applyCustomEmojis:(NSMutableAttributedString *)string
+           protectedRanges:(NSMutableArray *)protectedRanges {
+    NSRegularExpression *regex = [NSRegularExpression
+        regularExpressionWithPattern:@"<(a?):(\\w+):(\\d+)>"
+                             options:0
+                               error:nil];
+
+    NSArray *matches = [regex matchesInString:string.string
+                                      options:0
+                                        range:NSMakeRange(0, string.string.length)];
+
+    for (NSTextCheckingResult *match in [matches reverseObjectEnumerator]) {
+        if ([self range:match.range isProtectedBy:protectedRanges]) continue;
+
+        NSString *emojiID   = [string.string substringWithRange:[match rangeAtIndex:3]];
+        NSString *emojiName = [string.string substringWithRange:[match rangeAtIndex:2]];
+        DCEmoji *emoji      = [DCServerCommunicator.sharedInstance emojiForSnowflake:emojiID];
+
+        if (!emoji) {
+            // Token from a guild the client hasn't loaded — degrade gracefully
+            NSString *fallback = [NSString stringWithFormat:@":%@:", emojiName];
+            [string replaceCharactersInRange:match.range withString:fallback];
+            [protectedRanges addObject:[NSValue valueWithRange:
+                NSMakeRange(match.range.location, fallback.length)]];
+            continue;
+        }
+
+        // Build the inline attachment. Image may be nil if the fetch hasn't
+        // completed yet — the view will be empty until EMOJI IMAGE READY fires
+        // and attributedContent is invalidated and rebuilt.
+        DTImageTextAttachment *attachment = [[DTImageTextAttachment alloc] init];
+        attachment.displaySize = CGSizeMake(18.0f, 18.0f);
+        attachment.contentURL = [NSURL URLWithString:
+            [NSString stringWithFormat:@"discord-emoji://%@", emojiID]];
+
+        // CTRunDelegate tells CoreText to reserve the correct inline space
+        CTRunDelegateCallbacks callbacks;
+        memset(&callbacks, 0, sizeof(callbacks));
+        callbacks.version    = kCTRunDelegateVersion1;
+        callbacks.getAscent  = DCEmojiGetAscent;
+        callbacks.getDescent = DCEmojiGetDescent;
+        callbacks.getWidth   = DCEmojiGetWidth;
+        CTRunDelegateRef runDelegate = CTRunDelegateCreate(&callbacks, NULL);
+
+        // Replace the token with the Unicode attachment placeholder
+        [string replaceCharactersInRange:match.range withString:@"\uFFFC"];
+        NSRange attachRange = NSMakeRange(match.range.location, 1);
+
+        [string addAttributes:@{
+            NSAttachmentAttributeName:                   attachment,
+            (NSString *)kCTRunDelegateAttributeName:     CFBridgingRelease(runDelegate),
+            (NSString *)kCTForegroundColorAttributeName: (__bridge id)[UIColor clearColor].CGColor
+        } range:attachRange];
+
+        [protectedRanges addObject:[NSValue valueWithRange:attachRange]];
     }
 }
 

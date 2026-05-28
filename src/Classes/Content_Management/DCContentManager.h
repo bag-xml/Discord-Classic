@@ -9,6 +9,7 @@
 #import <UIKit/UIKit.h>
 
 @class DCUser;
+@class DCEmoji;
 @class UILazyImage;
 
 typedef NS_ENUM(NSInteger, DCAssetContext) {
@@ -32,5 +33,8 @@ typedef NS_ENUM(NSInteger, DCAssetContext) {
 
 // --- Attachment images ---
 + (UILazyImage *)scaledAttachmentImage:(UIImage *)image withURL:(NSURL *)url;
+
+// --- Emoji images ---
++ (void)fetchEmojiImage:(DCEmoji *)emoji;
 
 @end
