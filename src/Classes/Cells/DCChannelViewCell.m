@@ -10,4 +10,10 @@
 
 @implementation DCChannelViewCell
 
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    self.mentionBadge = [MentionBadge badgeWithCount:0];
+    [self.contentView addSubview:self.mentionBadge];
+}
+
 @end

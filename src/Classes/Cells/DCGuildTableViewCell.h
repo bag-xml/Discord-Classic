@@ -7,9 +7,10 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MentionBadge.h"
 
 @interface DCGuildTableViewCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIImageView *guildAvatar;
 @property (weak, nonatomic) IBOutlet UIImageView *unreadMessages;
-
+@property (strong, nonatomic) MentionBadge *mentionBadge;
 @end

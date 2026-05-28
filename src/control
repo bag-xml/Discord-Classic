@@ -1,0 +1,7 @@
+Package: bag.xml.Discord
+Name: Discord Classic
+Version: 0.9.2
+Architecture: iphoneos-arm
+Description: The definitive way of using Discord on legacy iOS.
+Maintainer: plzdonthaxme
+Author: bag.xml

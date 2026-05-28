@@ -10,4 +10,23 @@
 
 @implementation DCChatVideoAttachment
 
+- (void)awakeFromNib {
+    [super awakeFromNib];
+    self.videoWarning.hidden = YES;
+    self.videoWarning.text = @"";
+    self.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+    self.thumbnail.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+}
+
+- (void)prepareForDisplay {
+    self.thumbnail.frame = self.bounds;
+    self.backgroundColor = self.thumbnail.image
+        ? [UIColor clearColor]
+        : [UIColor blackColor];
+    self.videoWarning.frame = self.bounds;
+    self.videoWarning.textAlignment = NSTextAlignmentCenter;
+    [self bringSubviewToFront:self.playButton];
+    [self bringSubviewToFront:self.videoWarning];
+}
+
 @end

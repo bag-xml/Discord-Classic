@@ -1,0 +1,84 @@
+//
+//  DCMarkdownParser.h
+//  Discord Classic
+//
+//  Created by Ayeris on 5/23/26.
+//  Copyright (c) 2026 Ayeris All rights reserved.
+//
+
+#import <Foundation/Foundation.h>
+#import <CoreText/CoreText.h>
+#import <UIKit/UIKit.h>
+
+// Custom attribute key for block-level element type
+// Value is an NSNumber wrapping a DCMarkdownBlockType enum value
+extern NSString *const DCMarkdownBlockTypeAttributeName;
+
+// Custom attribute key for spoiler ranges
+// Value is the original plain text string of the spoiler content
+extern NSString *const DCMarkdownSpoilerAttributeName;
+
+typedef NS_ENUM(NSUInteger, DCMarkdownBlockType) {
+    DCMarkdownBlockTypeCode,
+    DCMarkdownBlockTypeBlockquote,
+};
+
+typedef NS_ENUM(NSInteger, DCMarkdownBackgroundStyle) {
+    DCMarkdownBackgroundStyleTag,        // user/channel/role mentions — blueish purple
+    DCMarkdownBackgroundStyleTimestamp,  // grey
+    DCMarkdownBackgroundStyleCode,       // near black
+    DCMarkdownBackgroundStyleSpoilerHidden,  // dark grey foreground covers text
+    DCMarkdownBackgroundStyleSpoilerRevealed // grey background, text visible
+};
+
+@interface DCMarkdownParser : NSObject
+
++ (instancetype)sharedParser;
+
+// Primary parse method — returns CoreText-compatible attributed string
+- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown;
+
+// Convenience variant for compact contexts (e.g. referenced message labels).
+// Fonts are capped at maxFontSize, all text and accent colors are overridden
+// with color, and minimumLineHeight is zeroed so CoreText uses natural metrics.
+- (NSAttributedString *)attributedStringFromMarkdown:(NSString *)markdown
+                                         maxFontSize:(CGFloat)maxFontSize
+                                               color:(UIColor *)color;
+
+
+// Controls the CTParagraphStyle minimum line height used in baseAttributes.
+// Defaults to 18pt (normal chat). Set to 0 to use CoreText natural metrics
+// (required for compact reply labels whose frame height is less than 18pt).
+@property (nonatomic, assign) CGFloat minimumLineHeight;
+
+// Inline fonts
+@property (nonatomic, strong) UIFont *defaultFont;
+@property (nonatomic, strong) UIFont *boldFont;
+@property (nonatomic, strong) UIFont *italicFont;
+@property (nonatomic, strong) UIFont *boldItalicFont;
+@property (nonatomic, strong) UIFont *underlineFont;
+@property (nonatomic, strong) UIFont *codeFont;
+
+// Header and subtext fonts
+@property (nonatomic, strong) UIFont *h1Font;
+@property (nonatomic, strong) UIFont *h2Font;
+@property (nonatomic, strong) UIFont *h3Font;
+@property (nonatomic, strong) UIFont *subtextFont;
+
+// Colors
+@property (nonatomic, strong) UIColor *defaultColor;
+@property (nonatomic, strong) UIColor *linkColor;
+@property (nonatomic, strong) UIColor *mentionColor;
+@property (nonatomic, strong) UIColor *codeTextColor;
+@property (nonatomic, strong) UIColor *spoilerHiddenColor;
+@property (nonatomic, strong) UIColor *blockquoteColor;
+@property (nonatomic, strong) UIColor *subtextColor;
+@property (nonatomic, strong) UIColor *strikethroughColor;
+
+// Helpers
+- (void)applyBackgroundStyle:(DCMarkdownBackgroundStyle)style
+                     toRange:(NSRange)range
+                    inString:(NSMutableAttributedString *)string
+               overrideColor:(UIColor *)overrideColor; // nil = use default
+
+@end

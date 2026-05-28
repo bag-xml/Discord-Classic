@@ -10,6 +10,7 @@
 
 @interface DCRecipientTableCell : UITableViewCell
 @property (weak, nonatomic) IBOutlet UIImageView *userPFP;
+@property (weak, nonatomic) IBOutlet UIImageView *statusLight;
 @property (weak, nonatomic) IBOutlet UILabel *userName;
 
 @end

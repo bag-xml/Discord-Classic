@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="5056" systemVersion="13F1911" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none">
     <dependencies>
-        <deployment version="1280" defaultVersion="1280" identifier="iOS"/>
+        <deployment version="1280" defaultVersion="1296" identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="3733"/>
     </dependencies>
     <objects>
@@ -14,33 +14,15 @@
                 <rect key="frame" x="0.0" y="0.0" width="320" height="81"/>
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
-                    <imageView opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" image="Icon.png" id="99">
-                        <rect key="frame" x="9" y="23" width="38" height="38"/>
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="Icon.png" id="99" userLabel="Image View - Avatar">
+                        <rect key="frame" x="5" y="20" width="46" height="46"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999" blue="0.3885722258" alpha="1" colorSpace="calibratedRGB"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </imageView>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="PFPInset.png" id="0nD-94-QIQ">
-                        <rect key="frame" x="9" y="23" width="38" height="39"/>
+                    <view opaque="NO" contentMode="scaleToFill" id="puj-z8-2kC" userLabel="DTAttributedLabel - Content" customClass="DTAttributedLabel">
+                        <rect key="frame" x="55" y="46" width="252" height="21"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    </imageView>
-                    <imageView opaque="NO" clearsContextBeforeDrawing="NO" userInteractionEnabled="NO" contentMode="scaleToFill" image="Icon.png" id="lBl-x9-NC3">
-                        <rect key="frame" x="5" y="19" width="46" height="46"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    </imageView>
-                    <textView autoresizesSubviews="NO" opaque="NO" multipleTouchEnabled="YES" contentMode="scaleToFill" bounces="NO" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" delaysContentTouches="NO" bouncesZoom="NO" editable="NO" text="Content" id="102">
-                        <rect key="frame" x="47" y="35" width="273" height="1451"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <accessibility key="accessibilityConfiguration">
-                            <accessibilityTraits key="traits" none="YES" button="YES" staticText="YES"/>
-                        </accessibility>
-                        <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="14"/>
-                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                        <dataDetectorType key="dataDetectorTypes" link="YES"/>
-                        <connections>
-                            <outlet property="delegate" destination="37" id="137"/>
-                        </connections>
-                    </textView>
+                    </view>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Author" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="38">
                         <rect key="frame" x="55" y="23" width="160" height="21"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
@@ -59,14 +41,10 @@
                         <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <size key="shadowOffset" width="0.0" height="1"/>
                     </label>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="Icon.png" id="xKn-f7-9FU">
+                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="Icon.png" id="xKn-f7-9FU" userLabel="Image View - Avatar">
                         <rect key="frame" x="53" y="4" width="19" height="19"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                        <color key="backgroundColor" red="0.2643008181" green="0.20473077819999999" blue="0.3885722258" alpha="1" colorSpace="calibratedRGB"/>
-                    </imageView>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="PFPInset.png" id="FKY-bw-uLC">
-                        <rect key="frame" x="53" y="4" width="19" height="20"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                     </imageView>
                     <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Author" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="tgA-We-qXE">
                         <rect key="frame" x="76" y="5" width="254" height="16"/>
@@ -77,42 +55,45 @@
                         <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                         <size key="shadowOffset" width="0.0" height="1"/>
                     </label>
-                    <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" text="Content" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="ufo-K4-mUs">
-                        <rect key="frame" x="115" y="5" width="172" height="16"/>
+                    <view opaque="NO" contentMode="scaleToFill" id="amd-y3-ncl" userLabel="DTAttributedLabel - Replay Content" customClass="DTAttributedLabel">
+                        <rect key="frame" x="115" y="8" width="172" height="16"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
-                        <fontDescription key="fontDescription" type="system" pointSize="10"/>
-                        <color key="textColor" red="0.50269616169999998" green="0.50269616169999998" blue="0.50269616169999998" alpha="1" colorSpace="calibratedRGB"/>
-                        <color key="highlightedColor" white="0.33333333333333331" alpha="1" colorSpace="calibratedWhite"/>
-                        <color key="shadowColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
-                        <size key="shadowOffset" width="0.0" height="1"/>
-                    </label>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="separator.png" id="3Fz-jX-Kia">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="2"/>
+                    </view>
+                    <view contentMode="scaleToFill" id="N3Z-ch-IQp" userLabel="View - Separator low">
+                        <rect key="frame" x="0.0" y="1" width="320" height="1"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" red="0.18823529410000001" green="0.19215686269999999" blue="0.21960784310000001" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <view contentMode="scaleToFill" id="FSa-Rv-l8v" userLabel="View - Separator high">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="1"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
+                        <color key="backgroundColor" red="0.1215686275" green="0.12549019610000001" blue="0.14117647059999999" alpha="1" colorSpace="calibratedRGB"/>
+                    </view>
+                    <view contentMode="scaleToFill" id="mF1-Jc-mk8">
+                        <rect key="frame" x="27" y="9" width="2" height="10"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    </imageView>
-                    <imageView userInteractionEnabled="NO" contentMode="scaleToFill" image="reply.png" id="SRU-vf-0bK">
-                        <rect key="frame" x="8" y="3" width="40" height="17"/>
+                        <color key="backgroundColor" white="0.41999999999999998" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <view contentMode="scaleToFill" id="wNL-lA-PZK">
+                        <rect key="frame" x="27" y="9" width="21" height="2"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                    </imageView>
+                        <color key="backgroundColor" white="0.41999999999999998" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
                 </subviews>
             </tableViewCellContentView>
             <color key="backgroundColor" red="0.15686274510000001" green="0.16078431369999999" blue="0.18039215689999999" alpha="1" colorSpace="calibratedRGB"/>
             <connections>
                 <outlet property="authorLabel" destination="38" id="0Sl-Zd-5L3"/>
-                <outlet property="avatarDecoration" destination="lBl-x9-NC3" id="AU7-aw-pP2"/>
-                <outlet property="contentTextView" destination="102" id="0sT-EH-jRe"/>
+                <outlet property="contentTextView" destination="puj-z8-2kC" id="H64-Ff-WTX"/>
                 <outlet property="profileImage" destination="99" id="PI9-KK-UPV"/>
                 <outlet property="referencedAuthorLabel" destination="tgA-We-qXE" id="0eQ-p4-zrs"/>
-                <outlet property="referencedMessage" destination="ufo-K4-mUs" id="qE0-RB-8Hk"/>
+                <outlet property="referencedMessage" destination="amd-y3-ncl" id="TMG-mt-Eqm"/>
                 <outlet property="referencedProfileImage" destination="xKn-f7-9FU" id="Fbs-WX-H7Q"/>
                 <outlet property="timestampLabel" destination="3HZ-iS-aC5" id="X9w-BH-6VH"/>
             </connections>
         </tableViewCell>
     </objects>
     <resources>
-        <image name="Icon.png" width="57" height="57"/>
-        <image name="PFPInset.png" width="38" height="39"/>
-        <image name="reply.png" width="96" height="41"/>
-        <image name="separator.png" width="320" height="4"/>
+        <image name="Icon.png" width="38" height="38"/>
     </resources>
 </document>

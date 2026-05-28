@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "MentionBadge.h"
 
 @interface DCChannelViewCell : UITableViewCell
-
 @property (weak, nonatomic) IBOutlet UIImageView *messageIndicator;
 @property (weak, nonatomic) IBOutlet UILabel *type;
 @property (weak, nonatomic) IBOutlet UILabel *channelName;
-
+@property (strong, nonatomic) MentionBadge *mentionBadge;
 @end

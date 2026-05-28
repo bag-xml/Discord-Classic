@@ -11,4 +11,19 @@
 #ifdef __OBJC__
     #import <UIKit/UIKit.h>
     #import <Foundation/Foundation.h>
+    #import <CoreText/CoreText.h>
+    #import "DTLog.h"
+
+    // https://stackoverflow.com/a/11694878
+    // New Indexing
+    #import "NSDictionary+Indexing.h"
+    #import "NSArray+Indexing.h"
+
+    // Provided by James Webster on StackOverFlow
+    #if __has_feature(objc_bool) 
+    #undef YES 
+    #undef NO 
+    #define YES __objc_yes 
+    #define NO __objc_no 
+    #endif 
 #endif
