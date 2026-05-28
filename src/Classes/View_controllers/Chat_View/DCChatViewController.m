@@ -53,6 +53,10 @@
 @property (strong, nonatomic) DCMessage *replyingToMessage;
 @property (assign, nonatomic) BOOL disablePing;
 @property (strong, nonatomic) DCMessage *editingMessage;
+@property (nonatomic, retain) NSIndexPath *longPressedIndexPath;
+@property (nonatomic, retain) UIColor *longPressedCellPreviousColor;
+@property (nonatomic, retain) NSIndexPath *touchHighlightIndexPath;
+@property (nonatomic, retain) UIColor *touchHighlightPreviousColor;
 @end
 
 // dynamic message box vars
@@ -117,6 +121,20 @@ static dispatch_queue_t chat_messages_queue;
     [self.view addGestureRecognizer:gestureRecognizer];
     gestureRecognizer.cancelsTouchesInView = NO;
     gestureRecognizer.delegate             = self;
+
+    UILongPressGestureRecognizer *feedbackRecognizer = [[UILongPressGestureRecognizer alloc]
+        initWithTarget:self
+                action:@selector(handleCellPressHighlight:)];
+    feedbackRecognizer.minimumPressDuration = 0.1;
+    feedbackRecognizer.cancelsTouchesInView = NO;
+    feedbackRecognizer.delegate = self;
+    [self.chatTableView addGestureRecognizer:feedbackRecognizer];
+
+    UILongPressGestureRecognizer *longPress = [[UILongPressGestureRecognizer alloc]
+        initWithTarget:self
+                action:@selector(handleCellLongPress:)];
+    longPress.minimumPressDuration = 0.5;
+    [self.chatTableView addGestureRecognizer:longPress];
 
     if ([[NSUserDefaults standardUserDefaults] boolForKey:@"experimentalMode"]) {
         self.slideMenuController.bouncing = YES;
@@ -928,6 +946,94 @@ static dispatch_queue_t chat_messages_queue;
                                                                      repeats:NO];
     // NSLog(@"%s: User %@ is typing, count: %lu", __PRETTY_FUNCTION__, ((DCUser *)[DCServerCommunicator.sharedInstance.loadedUsers objectForKey:typingUserId]).globalName, (unsigned long)self.typingUsers.count);
     [self updateTypingIndicator];
+}
+
+- (void)handleCellLongPress:(UILongPressGestureRecognizer *)recognizer {
+    if (recognizer.state != UIGestureRecognizerStateBegan) return;
+
+    CGPoint point = [recognizer locationInView:self.chatTableView];
+    NSIndexPath *indexPath = [self.chatTableView indexPathForRowAtPoint:point];
+    if (!indexPath || indexPath.row >= (NSInteger)self.messages.count) return;
+
+    self.longPressedIndexPath        = self.touchHighlightIndexPath;
+    self.touchHighlightIndexPath     = nil;
+
+    self.selectedMessage = self.messages[indexPath.row];
+
+    NSString *replyButton = self.replyingToMessage
+            && [self.replyingToMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
+        ? @"Cancel Reply"
+        : @"Reply";
+
+    if ([self.selectedMessage.author.snowflake
+            isEqualToString:DCServerCommunicator.sharedInstance.snowflake]) {
+        NSString *editButton = self.editingMessage
+                && [self.editingMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
+            ? @"Cancel Edit"
+            : @"Edit";
+        UIActionSheet *messageActionSheet =
+            [[UIActionSheet alloc] initWithTitle:self.selectedMessage.content
+                                        delegate:self
+                               cancelButtonTitle:@"Cancel"
+                          destructiveButtonTitle:@"Delete"
+                               otherButtonTitles:editButton,
+                                                 replyButton,
+                                                 @"Copy Message ID",
+                                                 @"View Profile",
+                                                 nil];
+        messageActionSheet.tag = 1;
+        messageActionSheet.delegate = self;
+        [messageActionSheet showFromRect:self.toolbar.frame inView:self.view animated:YES];
+    } else {
+        UIActionSheet *messageActionSheet = [[UIActionSheet alloc]
+                     initWithTitle:self.selectedMessage.content
+                          delegate:self
+                 cancelButtonTitle:nil
+            destructiveButtonTitle:nil
+                 otherButtonTitles:nil];
+        [messageActionSheet addButtonWithTitle:replyButton];
+        if (self.replyingToMessage
+            && [self.replyingToMessage.snowflake
+                isEqualToString:self.selectedMessage.snowflake]) {
+            [messageActionSheet addButtonWithTitle:self.disablePing
+                ? @"Enable Ping" : @"Disable Ping"];
+        }
+        [messageActionSheet addButtonWithTitle:@"Mention"];
+        [messageActionSheet addButtonWithTitle:@"Copy Message ID"];
+        [messageActionSheet addButtonWithTitle:@"View Profile"];
+        messageActionSheet.cancelButtonIndex = [messageActionSheet addButtonWithTitle:@"Cancel"];
+        messageActionSheet.tag = 3;
+        messageActionSheet.delegate = self;
+        [messageActionSheet showFromRect:self.toolbar.frame inView:self.view animated:YES];
+    }
+}
+
+- (void)handleCellPressHighlight:(UILongPressGestureRecognizer *)recognizer {
+    if (recognizer.state == UIGestureRecognizerStateBegan) {
+        CGPoint point = [recognizer locationInView:self.chatTableView];
+        NSIndexPath *indexPath = [self.chatTableView indexPathForRowAtPoint:point];
+        if (!indexPath || indexPath.row >= (NSInteger)self.messages.count) return;
+
+        UITableViewCell *cell = [self.chatTableView cellForRowAtIndexPath:indexPath];
+        if (!cell) return;
+
+        self.touchHighlightIndexPath = indexPath;
+        UIView *overlay = [[UIView alloc] initWithFrame:cell.contentView.bounds];
+        overlay.tag = 9999;
+        overlay.backgroundColor = [UIColor colorWithWhite:1.0f alpha:0.08f];
+        overlay.userInteractionEnabled = NO;
+        overlay.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        [cell.contentView addSubview:overlay];
+
+    } else if (recognizer.state == UIGestureRecognizerStateEnded
+               || recognizer.state == UIGestureRecognizerStateCancelled
+               || recognizer.state == UIGestureRecognizerStateFailed) {
+        if (!self.touchHighlightIndexPath) return;
+        UITableViewCell *cell =
+            [self.chatTableView cellForRowAtIndexPath:self.touchHighlightIndexPath];
+        [[cell.contentView viewWithTag:9999] removeFromSuperview];
+        self.touchHighlightIndexPath = nil;
+    }
 }
 
 - (void)typingTimerFired:(NSTimer *)timer {
@@ -2155,52 +2261,7 @@ static dispatch_queue_t chat_messages_queue;
 
 - (void)tableView:(UITableView *)tableView
     didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
-    self.selectedMessage = self.messages[indexPath.row];
-
-    NSString *replyButton = self.replyingToMessage
-            && [self.replyingToMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
-        ? @"Cancel Reply"
-        : @"Reply";
-    if ([self.selectedMessage.author.snowflake
-            isEqualToString:DCServerCommunicator.sharedInstance.snowflake]) {
-        NSString *editButton = self.editingMessage
-                && [self.editingMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
-            ? @"Cancel Edit"
-            : @"Edit";
-        UIActionSheet *messageActionSheet =
-            [[UIActionSheet alloc] initWithTitle:self.selectedMessage.content
-                                        delegate:self
-                               cancelButtonTitle:@"Cancel"
-                          destructiveButtonTitle:@"Delete"
-                               otherButtonTitles:editButton,
-                                                 replyButton,
-                                                 @"Copy Message ID",
-                                                 @"View Profile",
-                                                 nil];
-        messageActionSheet.tag = 1;
-        messageActionSheet.delegate = self;
-        [messageActionSheet showFromRect:self.toolbar.frame inView:self.view animated:YES];
-    } else {
-        UIActionSheet *messageActionSheet = [[UIActionSheet alloc]
-                     initWithTitle:self.selectedMessage.content
-                          delegate:self
-                 cancelButtonTitle:nil
-            destructiveButtonTitle:nil
-                 otherButtonTitles:nil];
-        [messageActionSheet addButtonWithTitle:replyButton];
-        if (self.replyingToMessage
-            && [self.replyingToMessage.snowflake
-                isEqualToString:self.selectedMessage.snowflake]) {
-            [messageActionSheet addButtonWithTitle:self.disablePing ? @"Enable Ping" : @"Disable Ping"];
-        }
-        [messageActionSheet addButtonWithTitle:@"Mention"];
-        [messageActionSheet addButtonWithTitle:@"Copy Message ID"];
-        [messageActionSheet addButtonWithTitle:@"View Profile"];
-        messageActionSheet.cancelButtonIndex = [messageActionSheet addButtonWithTitle:@"Cancel"];
-        messageActionSheet.tag = 3;
-        messageActionSheet.delegate = self;
-        [messageActionSheet showFromRect:self.toolbar.frame inView:self.view animated:YES];
-    }
+    [tableView deselectRowAtIndexPath:indexPath animated:NO];
 }
 
 - (void)actionSheet:(UIActionSheet *)popup
@@ -2304,6 +2365,15 @@ static dispatch_queue_t chat_messages_queue;
             [self performSegueWithIdentifier:@"chat to contact" sender:self];
         }
     }
+}
+
+- (void)actionSheet:(UIActionSheet *)actionSheet
+    didDismissWithButtonIndex:(NSInteger)buttonIndex {
+    if (!self.longPressedIndexPath) return;
+    UITableViewCell *cell =
+        [self.chatTableView cellForRowAtIndexPath:self.longPressedIndexPath];
+    [[cell.contentView viewWithTag:9999] removeFromSuperview];
+    self.longPressedIndexPath = nil;
 }
 
 
@@ -2470,6 +2540,15 @@ static dispatch_queue_t chat_messages_queue;
         v = v.superview;
     }
     return YES;
+}
+
+- (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
+    shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if ([gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]
+            && [otherGestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]) {
+        return YES;
+    }
+    return NO;
 }
 
 - (void)dismissKeyboard:(UITapGestureRecognizer *)sender {
