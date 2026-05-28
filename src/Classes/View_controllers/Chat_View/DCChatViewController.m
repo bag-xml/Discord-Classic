@@ -2266,6 +2266,14 @@ static dispatch_queue_t chat_messages_queue;
 
 - (void)actionSheet:(UIActionSheet *)popup
     clickedButtonAtIndex:(NSInteger)buttonIndex {
+
+    if (self.longPressedIndexPath) {
+        UITableViewCell *cell =
+            [self.chatTableView cellForRowAtIndexPath:self.longPressedIndexPath];
+        [[cell.contentView viewWithTag:9999] removeFromSuperview];
+        self.longPressedIndexPath = nil;
+    }
+
     if ([popup tag] == 1) {
         if (buttonIndex == 0) {
             UIAlertView *confirmAlert = [[UIAlertView alloc]
@@ -2366,16 +2374,6 @@ static dispatch_queue_t chat_messages_queue;
         }
     }
 }
-
-- (void)actionSheet:(UIActionSheet *)actionSheet
-    didDismissWithButtonIndex:(NSInteger)buttonIndex {
-    if (!self.longPressedIndexPath) return;
-    UITableViewCell *cell =
-        [self.chatTableView cellForRowAtIndexPath:self.longPressedIndexPath];
-    [[cell.contentView viewWithTag:9999] removeFromSuperview];
-    self.longPressedIndexPath = nil;
-}
-
 
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView {
     self.viewingPresentTime =
