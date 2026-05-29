@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+
 #import "TSMarkdownParser.h"
 
 @interface DCChatTableCell : UITableViewCell
@@ -21,5 +22,6 @@
 @property (strong, nonatomic) IBOutlet UILabel *referencedMessage;
 
 - (void)configureWithMessage:(NSString *)messageText;
+- (void)adjustTextViewSize;
 
 @end

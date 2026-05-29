@@ -20,7 +20,7 @@
 		</array>
 		<object class="NSMutableDictionary" key="IBDocument.Metadata">
 			<string key="NS.key.0">PluginDependencyRecalculationVersion</string>
-			<integer value="1" key="NS.object.0"/>
+			<integer value="1" key="NS.object.0" />
 		</object>
 		<array class="NSMutableArray" key="IBDocument.RootObjects" id="141020185">
 			<object class="IBProxyObject" id="194746614">
@@ -32,16 +32,16 @@
 				<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 			</object>
 			<object class="IBUIView" id="1069778560">
-				<reference key="NSNextResponder"/>
+				<reference key="NSNextResponder" />
 				<int key="NSvFlags">292</int>
 				<array class="NSMutableArray" key="NSSubviews">
 					<object class="IBUIImageView" id="606199461">
-						<reference key="NSNextResponder" ref="1069778560"/>
+						<reference key="NSNextResponder" ref="1069778560" />
 						<int key="NSvFlags">274</int>
 						<string key="NSFrameSize">{266, 123}</string>
-						<reference key="NSSuperview" ref="1069778560"/>
-						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView" ref="1054416182"/>
+						<reference key="NSSuperview" ref="1069778560" />
+						<reference key="NSWindow" />
+						<reference key="NSNextKeyView" ref="1054416182" />
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
 						<int key="IBUIContentMode">1</int>
@@ -49,12 +49,12 @@
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 					</object>
 					<object class="IBUIImageView" id="1054416182">
-						<reference key="NSNextResponder" ref="1069778560"/>
+						<reference key="NSNextResponder" ref="1069778560" />
 						<int key="NSvFlags">274</int>
 						<string key="NSFrame">{{0, 1}, {266, 123}}</string>
-						<reference key="NSSuperview" ref="1069778560"/>
-						<reference key="NSWindow"/>
-						<reference key="NSNextKeyView"/>
+						<reference key="NSSuperview" ref="1069778560" />
+						<reference key="NSWindow" />
+						<reference key="NSNextKeyView" />
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
 						<int key="IBUIContentMode">4</int>
@@ -71,16 +71,17 @@
 					</object>
 				</array>
 				<string key="NSFrameSize">{266, 123}</string>
-				<reference key="NSSuperview"/>
-				<reference key="NSWindow"/>
-				<reference key="NSNextKeyView" ref="606199461"/>
+				<reference key="NSSuperview" />
+				<reference key="NSWindow" />
+				<reference key="NSNextKeyView" ref="606199461" />
 				<object class="NSColor" key="IBUIBackgroundColor">
 					<int key="NSColorSpace">3</int>
 					<bytes key="NSWhite">MCAwAA</bytes>
 				</object>
 				<bool key="IBUIOpaque">NO</bool>
 				<object class="IBUISimulatedSizeMetrics" key="IBUISimulatedDestinationMetrics">
-					<string key="IBUISimulatedSizeMetricsClass">IBUISimulatedFreeformSizeMetricsSentinel</string>
+					<string key="IBUISimulatedSizeMetricsClass">
+						IBUISimulatedFreeformSizeMetricsSentinel</string>
 					<string key="IBUIDisplayName">Freeform</string>
 				</object>
 				<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -92,16 +93,16 @@
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">playButton</string>
-						<reference key="source" ref="1069778560"/>
-						<reference key="destination" ref="1054416182"/>
+						<reference key="source" ref="1069778560" />
+						<reference key="destination" ref="1054416182" />
 					</object>
 					<string key="id">e5C-OW-lyv</string>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchOutletConnection" key="connection">
 						<string key="label">thumbnail</string>
-						<reference key="source" ref="1069778560"/>
-						<reference key="destination" ref="606199461"/>
+						<reference key="source" ref="1069778560" />
+						<reference key="destination" ref="606199461" />
 					</object>
 					<string key="id">86h-Em-0KC</string>
 				</object>
@@ -110,63 +111,66 @@
 				<array key="orderedObjects">
 					<object class="IBObjectRecord">
 						<string key="id">0</string>
-						<array key="object" id="0"/>
-						<reference key="children" ref="141020185"/>
-						<nil key="parent"/>
+						<array key="object" id="0" />
+						<reference key="children" ref="141020185" />
+						<nil key="parent" />
 					</object>
 					<object class="IBObjectRecord">
 						<string key="id">-1</string>
-						<reference key="object" ref="194746614"/>
-						<reference key="parent" ref="0"/>
+						<reference key="object" ref="194746614" />
+						<reference key="parent" ref="0" />
 						<string key="objectName">File's Owner</string>
 					</object>
 					<object class="IBObjectRecord">
 						<string key="id">-2</string>
-						<reference key="object" ref="301918027"/>
-						<reference key="parent" ref="0"/>
+						<reference key="object" ref="301918027" />
+						<reference key="parent" ref="0" />
 					</object>
 					<object class="IBObjectRecord">
 						<string key="id">mlt-Wr-w8y</string>
-						<reference key="object" ref="1069778560"/>
+						<reference key="object" ref="1069778560" />
 						<array class="NSMutableArray" key="children">
-							<reference ref="606199461"/>
-							<reference ref="1054416182"/>
+							<reference ref="606199461" />
+							<reference ref="1054416182" />
 						</array>
-						<reference key="parent" ref="0"/>
+						<reference key="parent" ref="0" />
 					</object>
 					<object class="IBObjectRecord">
 						<string key="id">YAi-NK-lPx</string>
-						<reference key="object" ref="606199461"/>
-						<reference key="parent" ref="1069778560"/>
+						<reference key="object" ref="606199461" />
+						<reference key="parent" ref="1069778560" />
 					</object>
 					<object class="IBObjectRecord">
 						<string key="id">3je-jx-sDB</string>
-						<reference key="object" ref="1054416182"/>
-						<reference key="parent" ref="1069778560"/>
+						<reference key="object" ref="1054416182" />
+						<reference key="parent" ref="1069778560" />
 					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
 				<string key="-1.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<boolean value="NO" key="-1.showNotes"/>
+				<boolean value="NO" key="-1.showNotes" />
 				<string key="-2.CustomClassName">UIResponder</string>
 				<string key="-2.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<boolean value="NO" key="-2.showNotes"/>
-				<string key="3je-jx-sDB.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<reference key="3je-jx-sDB.IBUserGuides" ref="0"/>
-				<boolean value="NO" key="3je-jx-sDB.showNotes"/>
-				<string key="YAi-NK-lPx.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<reference key="YAi-NK-lPx.IBUserGuides" ref="0"/>
-				<boolean value="NO" key="YAi-NK-lPx.showNotes"/>
+				<boolean value="NO" key="-2.showNotes" />
+				<string key="3je-jx-sDB.IBPluginDependency">
+					com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<reference key="3je-jx-sDB.IBUserGuides" ref="0" />
+				<boolean value="NO" key="3je-jx-sDB.showNotes" />
+				<string key="YAi-NK-lPx.IBPluginDependency">
+					com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<reference key="YAi-NK-lPx.IBUserGuides" ref="0" />
+				<boolean value="NO" key="YAi-NK-lPx.showNotes" />
 				<string key="mlt-Wr-w8y.CustomClassName">DCChatVideoAttachment</string>
-				<string key="mlt-Wr-w8y.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
-				<reference key="mlt-Wr-w8y.IBUserGuides" ref="0"/>
-				<boolean value="NO" key="mlt-Wr-w8y.showNotes"/>
+				<string key="mlt-Wr-w8y.IBPluginDependency">
+					com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<reference key="mlt-Wr-w8y.IBUserGuides" ref="0" />
+				<boolean value="NO" key="mlt-Wr-w8y.showNotes" />
 			</dictionary>
-			<dictionary class="NSMutableDictionary" key="unlocalizedProperties"/>
-			<nil key="activeLocalization"/>
-			<dictionary class="NSMutableDictionary" key="localizations"/>
-			<nil key="sourceID"/>
+			<dictionary class="NSMutableDictionary" key="unlocalizedProperties" />
+			<nil key="activeLocalization" />
+			<dictionary class="NSMutableDictionary" key="localizations" />
+			<nil key="sourceID" />
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
@@ -199,15 +203,15 @@
 		<bool key="IBDocument.previouslyAttemptedUpgradeToXcode5">YES</bool>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaTouchPlugin.iPhoneOS</string>
-			<real value="1280" key="NS.object.0"/>
+			<real value="1280" key="NS.object.0" />
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDependencyDefaults">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaTouchPlugin.iPhoneOS</string>
-			<real value="1280" key="NS.object.0"/>
+			<real value="1280" key="NS.object.0" />
 		</object>
 		<object class="NSMutableDictionary" key="IBDocument.PluginDeclaredDevelopmentDependencies">
 			<string key="NS.key.0">com.apple.InterfaceBuilder.CocoaTouchPlugin.InterfaceBuilder3</string>
-			<integer value="4600" key="NS.object.0"/>
+			<integer value="4600" key="NS.object.0" />
 		</object>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>
 		<int key="IBDocument.defaultPropertyAccessControl">3</int>
