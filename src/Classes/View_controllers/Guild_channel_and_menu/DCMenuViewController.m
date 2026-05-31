@@ -19,6 +19,7 @@
 #include "DCUser.h"
 #import "MentionBadge.h"
 #import "DCContentManager.h"
+#import "DCCacheManager.h"
 
 @interface DCMenuViewController ()
 @property NSMutableArray *displayGuilds;
@@ -214,6 +215,10 @@
         [self.guildTableView reloadData];
         [self.channelTableView reloadData];
 
+        if (DCServerCommunicator.sharedInstance.didAuthenticate && self.displayGuilds.count) {
+            [[DCCacheManager sharedInstance] saveDisplayLayout:self.displayGuilds];
+        }
+
         if (!self.refreshControl) {
             self.refreshControl = UIRefreshControl.new;
 
@@ -280,26 +285,37 @@
     if (self.displayGuilds == nil || guild == nil) {
         return;
     }
-    // Guard against count mismatch before attempting row reload
+    // Guard against count mismatch — fall back to full reload
     if (self.displayGuilds.count != [self.guildTableView numberOfRowsInSection:0]) {
         [self.guildTableView reloadData];
         return;
     }
-    [self.guildTableView beginUpdates];
+
+    // Collect index paths to reload before touching the table
+    NSMutableArray *indexPaths = [NSMutableArray array];
+
     NSUInteger folderIdx = [self.displayGuilds
         indexOfObjectPassingTest:^BOOL(DCGuildFolder *folder, NSUInteger idx, BOOL *stop) {
-            return [folder isKindOfClass:[DCGuildFolder class]] && [folder.guildIds indexOfObject:guild.snowflake] < 4;
+            return [folder isKindOfClass:[DCGuildFolder class]]
+                && [folder.guildIds indexOfObject:guild.snowflake] < 4;
         }];
     if (folderIdx != NSNotFound) {
-        // Reload the folder in the list
-        [self.guildTableView reloadRowsAtIndexPaths:@[ [NSIndexPath indexPathForRow:folderIdx inSection:0] ]
-                                   withRowAnimation:UITableViewRowAnimationAutomatic];
+        [indexPaths addObject:[NSIndexPath indexPathForRow:folderIdx inSection:0]];
     }
+
     NSUInteger index = [self.displayGuilds indexOfObject:guild];
     if (index != NSNotFound) {
-        [self.guildTableView reloadRowsAtIndexPaths:@[ [NSIndexPath indexPathForRow:index inSection:0] ]
-                                   withRowAnimation:UITableViewRowAnimationAutomatic];
+        [indexPaths addObject:[NSIndexPath indexPathForRow:index inSection:0]];
     }
+
+    // Only touch the table if we actually have something to reload
+    if (indexPaths.count == 0) {
+        return;
+    }
+
+    [self.guildTableView beginUpdates];
+    [self.guildTableView reloadRowsAtIndexPaths:indexPaths
+                               withRowAnimation:UITableViewRowAnimationNone];
     [self.guildTableView endUpdates];
 }
 
@@ -698,6 +714,8 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView
          cellForRowAtIndexPath:(NSIndexPath *)indexPath {
+    
+
     if (tableView == self.guildTableView) {
         NSCAssert(
             self.displayGuilds && self.displayGuilds.count > indexPath.row,
@@ -736,7 +754,9 @@
                 }
 
                 // Guild name and icon
-                cell.guildAvatar.image = guildAtRowIndex.icon;
+                if (guildAtRowIndex.icon) {
+                    cell.guildAvatar.image = guildAtRowIndex.icon;
+                }
 
                 cell.guildAvatar.layer.cornerRadius =
                     cell.guildAvatar.frame.size.width / 6.0;
@@ -787,7 +807,7 @@
                         continue;
                     }
                     DCGuild *guild = [DCServerCommunicator.sharedInstance.guilds objectAtIndex:idx];
-                    if (!guild || ![guild isKindOfClass:[DCGuild class]]) {
+                    if (!guild || ![guild isKindOfClass:[DCGuild class]] || !guild.icon) {
                         continue;
                     }
                     [icons addObject:guild.icon];
@@ -1018,67 +1038,74 @@
             NSUInteger guildCount        = [DCServerCommunicator.sharedInstance.currentUserInfo.guildPositions count] + 1;
             NSMutableArray *sortedGuilds = [NSMutableArray arrayWithCapacity:guildCount];
             NSNull *nullObject           = [NSNull null];
-            // init to be able to index
-            for (NSUInteger i = 0; i < guildCount; i++) {
-                [sortedGuilds addObject:nullObject];
-            }
-            for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
-                NSUInteger index = [DCServerCommunicator.sharedInstance.currentUserInfo.guildPositions indexOfObject:guild.snowflake];
-                if (index != NSNotFound) {
-                    [sortedGuilds insertObject:guild atIndex:index + 1];
-                } else if ([[sortedGuilds objectAtIndex:0] isEqual:nullObject]) {
-                    // If the first element is still null, must be private guild
-                    [sortedGuilds insertObject:(id)guild atIndex:0];
+            NSMutableArray *cached = DCServerCommunicator.sharedInstance.cachedDisplayLayout;
+                if (cached.count) {
+                    self.displayGuilds = cached;
+                    DCServerCommunicator.sharedInstance.cachedDisplayLayout = nil;
+                    DCServerCommunicator.sharedInstance.guildsIsSorted = YES;
                 } else {
-                    // Otherwise, append to the end of the array
-                    [sortedGuilds addObject:guild];
-                }
-            }
-            [sortedGuilds removeObjectIdenticalTo:nullObject];
-            NSAssert(sortedGuilds && [sortedGuilds count] != 0, @"No sorted guilds found");
-            DCServerCommunicator.sharedInstance.guilds = sortedGuilds;
-            sortedGuilds                               = [NSMutableArray arrayWithObject:DCServerCommunicator.sharedInstance.guilds[0]]; // Add private guild at index 0
-            NSMutableSet *handledGuildIds = NSMutableSet.new;
-            for (DCGuildFolder *folder in DCServerCommunicator.sharedInstance.currentUserInfo.guildFolders) {
-                if (folder.id) {
-                    [sortedGuilds addObject:folder];
-                }
-                if (folder.opened) {
-                    NSArray *folderGuilds = [[DCServerCommunicator.sharedInstance.guilds 
-                        filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DCGuild *guild, NSDictionary *bindings) {
-                            return [folder.guildIds containsObject:guild.snowflake];
-                        }]]
-                        sortedArrayUsingComparator:^NSComparisonResult(DCGuild *a, DCGuild *b) {
-                            NSUInteger index1 = [folder.guildIds indexOfObject:a.snowflake];
-                            NSUInteger index2 = [folder.guildIds indexOfObject:b.snowflake];
-                            if (index1 < index2) {
-                                return NSOrderedAscending;
-                            } else if (index1 > index2) {
-                                return NSOrderedDescending;
-                            } else {
-                                return NSOrderedSame;
-                            }
-                        }];
+                    // init to be able to index
+                    for (NSUInteger i = 0; i < guildCount; i++) {
+                        [sortedGuilds addObject:nullObject];
+                    }
+                    for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
+                        NSUInteger index = [DCServerCommunicator.sharedInstance.currentUserInfo.guildPositions indexOfObject:guild.snowflake];
+                        if (index != NSNotFound) {
+                            [sortedGuilds insertObject:guild atIndex:index + 1];
+                        } else if ([[sortedGuilds objectAtIndex:0] isEqual:nullObject]) {
+                            // If the first element is still null, must be private guild
+                            [sortedGuilds insertObject:(id)guild atIndex:0];
+                        } else {
+                            // Otherwise, append to the end of the array
+                            [sortedGuilds addObject:guild];
+                        }
+                    }
+                    [sortedGuilds removeObjectIdenticalTo:nullObject];
+                    NSAssert(sortedGuilds && [sortedGuilds count] != 0, @"No sorted guilds found");
+                    DCServerCommunicator.sharedInstance.guilds = sortedGuilds;
+                    sortedGuilds                               = [NSMutableArray arrayWithObject:DCServerCommunicator.sharedInstance.guilds[0]]; // Add private guild at index 0
+                    NSMutableSet *handledGuildIds = NSMutableSet.new;
+                    for (DCGuildFolder *folder in DCServerCommunicator.sharedInstance.currentUserInfo.guildFolders) {
+                        if (folder.id) {
+                            [sortedGuilds addObject:folder];
+                        }
+                        if (folder.opened) {
+                            NSArray *folderGuilds = [[DCServerCommunicator.sharedInstance.guilds 
+                                filteredArrayUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(DCGuild *guild, NSDictionary *bindings) {
+                                    return [folder.guildIds containsObject:guild.snowflake];
+                                }]]
+                                sortedArrayUsingComparator:^NSComparisonResult(DCGuild *a, DCGuild *b) {
+                                    NSUInteger index1 = [folder.guildIds indexOfObject:a.snowflake];
+                                    NSUInteger index2 = [folder.guildIds indexOfObject:b.snowflake];
+                                    if (index1 < index2) {
+                                        return NSOrderedAscending;
+                                    } else if (index1 > index2) {
+                                        return NSOrderedDescending;
+                                    } else {
+                                        return NSOrderedSame;
+                                    }
+                                }];
 
-                    [sortedGuilds addObjectsFromArray:folderGuilds];
+                            [sortedGuilds addObjectsFromArray:folderGuilds];
+                        }
+                        [handledGuildIds addObjectsFromArray:folder.guildIds];
+                    }
+                    NSMutableArray *origCopy = [[[DCServerCommunicator.sharedInstance.guilds reverseObjectEnumerator] allObjects] mutableCopy];
+                    [origCopy filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
+                        if ([evaluatedObject isKindOfClass:[DCGuild class]]) {
+                            DCGuild *guild = (DCGuild *)evaluatedObject;
+                            return guild.snowflake && ![handledGuildIds containsObject:guild.snowflake];
+                        }
+                        return NO;
+                    }]]; // get difference
+                    if (origCopy.count > 0) {
+                        NSRange range = NSMakeRange(1, [origCopy count]);
+                        NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
+                        [sortedGuilds insertObjects:origCopy atIndexes:indexSet];
+                    }
+                    self.displayGuilds                      = sortedGuilds;
+                    DCServerCommunicator.sharedInstance.guildsIsSorted = YES;
                 }
-                [handledGuildIds addObjectsFromArray:folder.guildIds];
-            }
-            NSMutableArray *origCopy = [[[DCServerCommunicator.sharedInstance.guilds reverseObjectEnumerator] allObjects] mutableCopy];
-            [origCopy filterUsingPredicate:[NSPredicate predicateWithBlock:^BOOL(id evaluatedObject, NSDictionary *bindings) {
-                if ([evaluatedObject isKindOfClass:[DCGuild class]]) {
-                    DCGuild *guild = (DCGuild *)evaluatedObject;
-                    return guild.snowflake && ![handledGuildIds containsObject:guild.snowflake];
-                }
-                return NO;
-            }]]; // get difference
-            if (origCopy.count > 0) {
-                NSRange range = NSMakeRange(1, [origCopy count]);
-                NSIndexSet *indexSet = [NSIndexSet indexSetWithIndexesInRange:range];
-                [sortedGuilds insertObjects:origCopy atIndexes:indexSet];
-            }
-            self.displayGuilds                      = sortedGuilds;
-            DCServerCommunicator.sharedInstance.guildsIsSorted = YES;
         }
 
         return self.displayGuilds.count;

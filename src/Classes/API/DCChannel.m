@@ -892,4 +892,48 @@ static dispatch_queue_t channel_send_queue;
     return messages.count > 0 ? messages : nil;
 }
 
+#pragma mark - NSCoding
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeObject:self.snowflake         forKey:@"snowflake"];
+    [aCoder encodeObject:self.parentID          forKey:@"parentID"];
+    [aCoder encodeObject:self.name              forKey:@"name"];
+    [aCoder encodeObject:self.lastMessageId     forKey:@"lastMessageId"];
+    [aCoder encodeObject:self.lastReadMessageId forKey:@"lastReadMessageId"];
+    [aCoder encodeInteger:self.mentionCount     forKey:@"mentionCount"];
+    [aCoder encodeBool:self.muted               forKey:@"muted"];
+    [aCoder encodeBool:self.writeable           forKey:@"writeable"];
+    [aCoder encodeInteger:self.type             forKey:@"type"];
+    [aCoder encodeInteger:self.position         forKey:@"position"];
+
+    // For DM channels: encode recipient display names only (no full DCUser graph)
+    NSMutableArray *recipientNames = [NSMutableArray array];
+    for (id recipient in self.recipients) {
+        if ([recipient respondsToSelector:@selector(displayName)]) {
+            NSString *name = [recipient displayName];
+            if (name) [recipientNames addObject:name];
+        }
+    }
+    [aCoder encodeObject:recipientNames forKey:@"recipientNames"];
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super init];
+    if (self) {
+        self.snowflake         = [aDecoder decodeObjectForKey:@"snowflake"];
+        self.parentID          = [aDecoder decodeObjectForKey:@"parentID"];
+        self.name              = [aDecoder decodeObjectForKey:@"name"];
+        self.lastMessageId     = [aDecoder decodeObjectForKey:@"lastMessageId"];
+        self.lastReadMessageId = [aDecoder decodeObjectForKey:@"lastReadMessageId"];
+        self.mentionCount      = [aDecoder decodeIntegerForKey:@"mentionCount"];
+        self.muted             = [aDecoder decodeBoolForKey:@"muted"];
+        self.writeable         = [aDecoder decodeBoolForKey:@"writeable"];
+        self.type              = (DCChannelType)[aDecoder decodeIntegerForKey:@"type"];
+        self.position          = [aDecoder decodeIntegerForKey:@"position"];
+        // recipientNames decoded but not used yet — full recipient objects
+        // come from the live READY payload. Channel name is sufficient for display.
+    }
+    return self;
+}
+
 @end

@@ -978,8 +978,8 @@ static dispatch_queue_t chat_messages_queue;
                           destructiveButtonTitle:@"Delete"
                                otherButtonTitles:editButton,
                                                  replyButton,
+                                                 @"Copy Message",
                                                  @"Copy Message ID",
-                                                 @"View Profile",
                                                  nil];
         messageActionSheet.tag = 1;
         messageActionSheet.delegate = self;
@@ -999,8 +999,8 @@ static dispatch_queue_t chat_messages_queue;
                 ? @"Enable Ping" : @"Disable Ping"];
         }
         [messageActionSheet addButtonWithTitle:@"Mention"];
+        [messageActionSheet addButtonWithTitle:@"Copy Message"];
         [messageActionSheet addButtonWithTitle:@"Copy Message ID"];
-        [messageActionSheet addButtonWithTitle:@"View Profile"];
         messageActionSheet.cancelButtonIndex = [messageActionSheet addButtonWithTitle:@"Cancel"];
         messageActionSheet.tag = 3;
         messageActionSheet.delegate = self;
@@ -1968,8 +1968,16 @@ static dispatch_queue_t chat_messages_queue;
     int attachmentHeight = 0;
     for (id attachment in message.attachments) {
         if ([attachment isKindOfClass:[UILazyImage class]]) {
-            UIImage *image = ((UILazyImage *)attachment).image;
-            CGFloat aspectRatio = image.size.width / image.size.height;
+            UILazyImage *lazyImg = attachment;
+            CGSize sourceSize = CGSizeZero;
+            if (lazyImg.naturalSize.width > 0 && lazyImg.naturalSize.height > 0) {
+                sourceSize = lazyImg.naturalSize;
+            } else if (lazyImg.image) {
+                sourceSize = lazyImg.image.size;
+            } else {
+                continue;
+            }
+            CGFloat aspectRatio = sourceSize.width / sourceSize.height;
             int newWidth  = message.isSticker ? 160 : (int)(200 * aspectRatio);
             int newHeight = message.isSticker ? 160 : 200;
             if (newWidth > tableWidth - 66) {
@@ -2275,7 +2283,7 @@ static dispatch_queue_t chat_messages_queue;
     }
 
     if ([popup tag] == 1) {
-        if (buttonIndex == 0) {
+        if (buttonIndex == 0) {                                         // Delete
             UIAlertView *confirmAlert = [[UIAlertView alloc]
                 initWithTitle:@"Delete Message"
                       message:@"Are you sure you want to delete this message?"
@@ -2283,7 +2291,7 @@ static dispatch_queue_t chat_messages_queue;
             cancelButtonTitle:@"Cancel"
             otherButtonTitles:@"Delete", nil];
             [confirmAlert show];
-        } else if (buttonIndex == 1) {
+        } else if (buttonIndex == 1) {                                  // Edit
             if (self.editingMessage
                 && [self.editingMessage.snowflake
                     isEqualToString:self.selectedMessage.snowflake]) {
@@ -2293,7 +2301,7 @@ static dispatch_queue_t chat_messages_queue;
                 [self resizeInputField];
             } else {
                 self.editingMessage               = self.selectedMessage;
-                self.inputField.text              = self.selectedMessage.content;
+                self.inputField.text              = self.selectedMessage.rawContent;
                 self.inputFieldPlaceholder.hidden = YES;
                 [self resizeInputField];
             }
@@ -2302,7 +2310,7 @@ static dispatch_queue_t chat_messages_queue;
             [self.chatTableView beginUpdates];
             [self.chatTableView reloadRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationNone];
             [self.chatTableView endUpdates];
-        } else if (buttonIndex == 2) {
+        } else if (buttonIndex == 2) {                                  // Reply
             self.replyingToMessage = !self.replyingToMessage
                     || ![self.replyingToMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
                 ? self.selectedMessage
@@ -2312,19 +2320,17 @@ static dispatch_queue_t chat_messages_queue;
             [self.chatTableView beginUpdates];
             [self.chatTableView reloadRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationNone];
             [self.chatTableView endUpdates];
-        } else if (buttonIndex == 3) {
-            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-            [pasteboard setString:self.selectedMessage.snowflake];
-        } else if (buttonIndex == 4) {
-            [self performSegueWithIdentifier:@"chat to contact" sender:self];
+        } else if (buttonIndex == 3) {                                  // Copy Message
+            [[UIPasteboard generalPasteboard] setString:self.selectedMessage.rawContent];
+        } else if (buttonIndex == 4) {                                  // Copy Message ID
+            [[UIPasteboard generalPasteboard] setString:self.selectedMessage.snowflake];
         }
-    } else if ([popup tag] == 2) { // Image Source selection
+
+    } else if ([popup tag] == 2) {                                      // Image source picker
         UIImagePickerController *picker = UIImagePickerController.new;
-        // TODO: add video send function
         picker.mediaTypes = [UIImagePickerController
             availableMediaTypesForSourceType:
                 UIImagePickerControllerSourceTypeCamera];
-        // picker.videoQuality = UIImagePickerControllerQualityTypeLow;
         picker.delegate = (id)self;
 
         if (buttonIndex == 0) {
@@ -2333,24 +2339,23 @@ static dispatch_queue_t chat_messages_queue;
                         UIImagePickerControllerSourceTypeCamera]) {
                 picker.sourceType = UIImagePickerControllerSourceTypeCamera;
             } else {
-                ////NSLog(@"Camera not available on this device.");
                 return;
             }
         } else if (buttonIndex == 1) {
             picker.sourceType = UIImagePickerControllerSourceTypePhotoLibrary;
         } else {
-            // Cancel tapped or another option (safe to ignore)
             return;
         }
         [picker viewWillAppear:YES];
         [self presentViewController:picker animated:YES completion:nil];
         [picker viewWillAppear:YES];
+
     } else if ([popup tag] == 3) {
         int addbut = self.replyingToMessage
                 && [self.replyingToMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
             ? 1
             : 0;
-        if (buttonIndex == 0) { // (cancel) reply
+        if (buttonIndex == 0) {                                         // Reply / Cancel Reply
             self.replyingToMessage = !self.replyingToMessage
                     || ![self.replyingToMessage.snowflake isEqualToString:self.selectedMessage.snowflake]
                 ? self.selectedMessage
@@ -2360,17 +2365,16 @@ static dispatch_queue_t chat_messages_queue;
             [self.chatTableView beginUpdates];
             [self.chatTableView reloadRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationNone];
             [self.chatTableView endUpdates];
-        } else if (buttonIndex == addbut) { // will never match when 0
+        } else if (buttonIndex == addbut) {                             // Toggle Ping (only when addbut == 1)
             self.disablePing = !self.disablePing;
-        } else if (buttonIndex == 1 + addbut) {
+        } else if (buttonIndex == 1 + addbut) {                        // Mention
             self.inputField.text = [NSString
                 stringWithFormat:@"%@<@%@> ", self.inputField.text,
                                  self.selectedMessage.author.snowflake];
-        } else if (buttonIndex == 2 + addbut) {
-            UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-            [pasteboard setString:self.selectedMessage.snowflake];
-        } else if (buttonIndex == 3 + addbut) {
-            [self performSegueWithIdentifier:@"chat to contact" sender:self];
+        } else if (buttonIndex == 2 + addbut) {                        // Copy Message
+            [[UIPasteboard generalPasteboard] setString:self.selectedMessage.rawContent];
+        } else if (buttonIndex == 3 + addbut) {                        // Copy Message ID
+            [[UIPasteboard generalPasteboard] setString:self.selectedMessage.snowflake];
         }
     }
 }
@@ -2530,6 +2534,14 @@ static dispatch_queue_t chat_messages_queue;
     [UIView commitAnimations];
 }
 
+- (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
+    if (!self.touchHighlightIndexPath) return;
+    UITableViewCell *cell =
+        [self.chatTableView cellForRowAtIndexPath:self.touchHighlightIndexPath];
+    [[cell.contentView viewWithTag:9999] removeFromSuperview];
+    self.touchHighlightIndexPath = nil;
+}
+
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer
        shouldReceiveTouch:(UITouch *)touch {
     UIView *v = touch.view;
@@ -2544,6 +2556,10 @@ static dispatch_queue_t chat_messages_queue;
     shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
     if ([gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]
             && [otherGestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]) {
+        return YES;
+    }
+    if ([gestureRecognizer isKindOfClass:[UILongPressGestureRecognizer class]]
+            && [otherGestureRecognizer isKindOfClass:[UIPanGestureRecognizer class]]) {
         return YES;
     }
     return NO;

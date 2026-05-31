@@ -60,6 +60,7 @@ typedef NS_ENUM(NSInteger, DCMessageReferenceType) {
 @interface DCMessage : NSObject
 @property (strong, nonatomic) DCSnowflake* snowflake;
 @property (strong, nonatomic) DCUser* author;
+@property (strong, nonatomic) NSString *rawContent;
 @property (strong, nonatomic) NSString* content;
 @property (strong, nonatomic) NSAttributedString* attributedContent;
 @property (nonatomic) CGFloat textHeight;

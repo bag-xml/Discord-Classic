@@ -4,4 +4,5 @@
 @interface UILazyImage: NSObject
 @property (strong, nonatomic) UIImage *image;
 @property (strong, nonatomic) NSURL *imageURL;
+@property (assign, nonatomic) CGSize naturalSize;
 @end

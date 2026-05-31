@@ -399,6 +399,7 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
         newMessage.author          = authorUser;
         newMessage.messageType     = [[jsonMessage objectForKey:@"type"] intValue];
         newMessage.content         = [jsonMessage objectForKey:@"content"];
+        newMessage.rawContent      = newMessage.content;
         newMessage.snowflake       = [jsonMessage objectForKey:@"id"];
         newMessage.attachments     = NSMutableArray.new;
         newMessage.attachmentCount = 0;
@@ -611,7 +612,9 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                     } else {
                         if ([[embed valueForKeyPath:@"thumbnail.placeholder_version"] integerValue] == 1) {
                             UIImage *img = thumbHashToImage([NSData dataWithBase64EncodedString:[embed valueForKeyPath:@"thumbnail.placeholder"]]);
-                            [newMessage.attachments addObject:[DCTools scaledImageFromImage:img withURL:urlString]];
+                            UILazyImage *placeholder = [DCTools scaledImageFromImage:img withURL:urlString];
+                            placeholder.naturalSize = CGSizeMake(width, height);
+                            [newMessage.attachments addObject:placeholder];
                         } else {
                             [newMessage.attachments addObject:@[ @(width), @(height) ]];
                         }
@@ -628,7 +631,9 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                                                             return;
                                                         }
                                                         dispatch_async(dispatch_get_main_queue(), ^{
-                                                            [newMessage.attachments replaceObjectAtIndex:idx withObject:[DCTools scaledImageFromImage:retrievedImage withURL:urlString]];
+                                                            UILazyImage *loaded = [DCTools scaledImageFromImage:retrievedImage withURL:urlString];
+                                                            loaded.naturalSize = CGSizeMake(width, height);
+                                                            [newMessage.attachments replaceObjectAtIndex:idx withObject:loaded];
                                                             [NSNotificationCenter.defaultCenter
                                                                 postNotificationName:@"RELOAD MESSAGE DATA"
                                                                               object:newMessage];
@@ -926,7 +931,9 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                     } else {
                         if ([[attachment objectForKey:@"placeholder_version"] integerValue] == 1) {
                             UIImage *img = thumbHashToImage([NSData dataWithBase64EncodedString:[attachment objectForKey:@"placeholder"]]);
-                            [newMessage.attachments addObject:[DCTools scaledImageFromImage:img withURL:urlString]];
+                            UILazyImage *placeholder = [DCTools scaledImageFromImage:img withURL:urlString];
+                            placeholder.naturalSize = CGSizeMake(width, height);
+                            [newMessage.attachments addObject:placeholder];
                         } else {
                             [newMessage.attachments addObject:@[ @(width), @(height) ]];
                         }
@@ -943,7 +950,9 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                                                             return;
                                                         }
                                                         dispatch_async(dispatch_get_main_queue(), ^{
-                                                            [newMessage.attachments replaceObjectAtIndex:idx withObject:[DCTools scaledImageFromImage:retrievedImage withURL:urlString]];
+                                                            UILazyImage *loaded = [DCTools scaledImageFromImage:retrievedImage withURL:urlString];
+                                                            loaded.naturalSize = CGSizeMake(width, height);
+                                                            [newMessage.attachments replaceObjectAtIndex:idx withObject:loaded];
                                                             [NSNotificationCenter.defaultCenter
                                                                 postNotificationName:@"RELOAD MESSAGE DATA"
                                                                               object:newMessage];
@@ -1141,6 +1150,7 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
                                             UILazyImage *lazyImage = [UILazyImage new];
                                             lazyImage.image        = retrievedImage;
                                             lazyImage.imageURL     = stickerURL;
+                                            lazyImage.naturalSize  = CGSizeMake(160, 160);
                                             dispatch_async(dispatch_get_main_queue(), ^{
                                                 [newMessage.attachments replaceObjectAtIndex:idx withObject:lazyImage];
                                                 [NSNotificationCenter.defaultCenter
@@ -1401,6 +1411,7 @@ static UIImage *roundedCornerImage(UIImage *image, CGFloat radius) {
         NSURL *iconURL = [NSURL URLWithString:[NSString
                                                   stringWithFormat:@"https://cdn.discordapp.com/icons/%@/%@.png?size=80",
                                                                    newGuild.snowflake, [jsonGuild objectForKey:@"icon"]]];
+        newGuild.iconURL = [iconURL absoluteString];
         [manager downloadImageWithURL:iconURL
                               options:SDWebImageRetryFailed
                              progress:nil

@@ -31,7 +31,7 @@ typedef NS_ENUM(NSInteger, DCChannelType) {
     DCChannelTypeGuildMedia         = 16, // Channel that can only contain threads, similar to GUILD_FORUM channels
 };
 
-@interface DCChannel : NSObject<NSURLConnectionDelegate>
+@interface DCChannel : NSObject<NSURLConnectionDelegate, NSCoding>
 @property (strong, nonatomic) DCSnowflake* snowflake;
 // parent category (for channels) or id of text channel (for threads)
 @property (strong, nonatomic) DCSnowflake* parentID;

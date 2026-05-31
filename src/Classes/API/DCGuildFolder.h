@@ -10,7 +10,7 @@
 #import <objc/NSObjCRuntime.h>
 #import <UIKit/UIKit.h>
 
-@interface DCGuildFolder : NSObject 
+@interface DCGuildFolder : NSObject<NSCoding>
 
 @property (strong, nonatomic) NSString *name;
 @property (assign, nonatomic) NSInteger color;

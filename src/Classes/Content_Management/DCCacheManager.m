@@ -127,4 +127,109 @@
     // SDWebImage memory cache is handled separately by the app delegate
 }
 
+// --- Guild/structure cache (disk-backed) ---
+
+- (NSString *)guildCachePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES);
+    NSString *documents = [paths objectAtIndex:0];
+    return [documents stringByAppendingPathComponent:@"dc_guild_cache.archive"];
+}
+
+- (void)saveGuilds:(NSArray *)guilds {
+    if (!guilds.count) return;
+    NSString *path = [self guildCachePath];
+    @try {
+        [NSKeyedArchiver archiveRootObject:guilds toFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] Guild cache save failed: %@", e);
+        // Remove any partial file that may have been written
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+    }
+}
+
+- (NSArray *)loadCachedGuilds {
+    NSString *path = [self guildCachePath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) return nil;
+    @try {
+        return [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] Guild cache corrupt, discarding: %@", e);
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        return nil;
+    }
+}
+
+- (void)invalidateGuildCache {
+    NSString *path = [self guildCachePath];
+    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+}
+
+// --- Display Layout cache (disk-backed) ---
+
+- (NSString *)displayLayoutCachePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES);
+    return [[paths objectAtIndex:0] stringByAppendingPathComponent:@"dc_layout_cache.archive"];
+}
+
+- (void)saveDisplayLayout:(NSArray *)displayGuilds {
+    if (!displayGuilds.count) return;
+    NSString *path = [self displayLayoutCachePath];
+    @try {
+        [NSKeyedArchiver archiveRootObject:displayGuilds toFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] Layout cache save failed: %@", e);
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+    }
+}
+
+- (NSArray *)loadDisplayLayout {
+    NSString *path = [self displayLayoutCachePath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) return nil;
+    @try {
+        return [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] Layout cache corrupt, discarding: %@", e);
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        return nil;
+    }
+}
+
+// --- User Info cache (disk-backed) ---
+
+- (NSString *)userInfoCachePath {
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES);
+    return [[paths objectAtIndex:0]
+        stringByAppendingPathComponent:@"dc_userinfo_cache.archive"];
+}
+
+- (void)saveUserInfo:(DCUserInfo *)userInfo {
+    if (!userInfo) return;
+    NSString *path = [self userInfoCachePath];
+    @try {
+        [NSKeyedArchiver archiveRootObject:userInfo toFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] UserInfo cache save failed: %@", e);
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+    }
+}
+
+- (DCUserInfo *)loadCachedUserInfo {
+    NSString *path = [self userInfoCachePath];
+    if (![[NSFileManager defaultManager] fileExistsAtPath:path]) return nil;
+    @try {
+        return [NSKeyedUnarchiver unarchiveObjectWithFile:path];
+    }
+    @catch (NSException *e) {
+        NSLog(@"[DCCacheManager] UserInfo cache corrupt, discarding: %@", e);
+        [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        return nil;
+    }
+}
 @end

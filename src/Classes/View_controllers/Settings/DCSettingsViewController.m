@@ -122,35 +122,8 @@
 
 - (void)performLogOut {
     self.isLoggingOut = YES;
-
-    DCServerCommunicator *comm = DCServerCommunicator.sharedInstance;
-    
-    // Nil token first so any callbacks during teardown can't trigger a reconnect
-    comm.token           = nil;
-    comm.didAuthenticate = NO;
-
-    // Tear down connection state cleanly
-    [comm prepareForLogout];
-
-    // Clear data
-    comm.currentUserInfo     = nil;
-    comm.guilds              = nil;
-    comm.channels            = nil;
-    comm.loadedUsers         = nil;
-    comm.loadedRoles         = nil;
-    comm.loadedEmojis        = nil;
-    comm.selectedGuild       = nil;
-    comm.selectedChannel     = nil;
-    comm.userChannelSettings = nil;
-
     self.tokenInputField.text = @"";
-    [NSUserDefaults.standardUserDefaults removeObjectForKey:@"token"];
-    [NSUserDefaults.standardUserDefaults synchronize];
-
-    [[DCCacheManager sharedInstance] invalidateAllMessages];
-    [[DCCacheManager sharedInstance] handleMemoryWarning];
-
-    [[NSNotificationCenter defaultCenter] postNotificationName:@"DCUserDidLogOut" object:nil];
+    [DCServerCommunicator.sharedInstance performLogout];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {

@@ -251,6 +251,7 @@ typedef NS_ENUM(uint64_t, DCGatewayCapabilities) {
 @property (strong, nonatomic) NSMutableDictionary* loadedUsers;
 @property (strong, nonatomic) NSMutableDictionary* loadedRoles;
 @property (strong, nonatomic) NSMutableDictionary* loadedEmojis;
+@property (strong, nonatomic) NSMutableArray *cachedDisplayLayout;
 
 @property (strong, nonatomic) DCGuild* selectedGuild;
 @property (strong, nonatomic) DCChannel* selectedChannel;
@@ -264,6 +265,7 @@ typedef NS_ENUM(uint64_t, DCGatewayCapabilities) {
 - (void)startCommunicator;
 - (void)reconnect;
 - (void)prepareForLogout;
+- (void)performLogout;
 - (void)sendHeartbeat:(NSTimer*)timer;
 - (void)sendJSON:(NSDictionary*)dictionary;
 - (void)sendGuildSubscriptionWithGuildId:(NSString*)guildId channelId:(NSString*)channelId;

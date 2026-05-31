@@ -10,6 +10,7 @@
 
 @class DCMessage;
 @class DCUser;
+@class DCUserInfo;
 @class DCEmoji;
 
 @interface DCMessageCacheEntry : NSObject
@@ -48,5 +49,18 @@
 
 // --- Memory management ---
 - (void)handleMemoryWarning;
+
+// --- Guild/structure cache (disk-backed) ---
+- (void)saveGuilds:(NSArray *)guilds;
+- (NSArray *)loadCachedGuilds;
+- (void)invalidateGuildCache;
+
+// --- Diaply Layout cache (disk-backed) ---
+- (void)saveDisplayLayout:(NSArray *)displayGuilds;
+- (NSArray *)loadDisplayLayout;
+
+// --- User Info cache (disk-backed) ---
+- (void)saveUserInfo:(DCUserInfo *)userInfo;
+- (DCUserInfo *)loadCachedUserInfo;
 
 @end

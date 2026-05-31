@@ -53,4 +53,36 @@ refreshMarker:
     return total;
 }
 
+#pragma mark - NSCoding
+
+- (void)encodeWithCoder:(NSCoder *)aCoder {
+    [aCoder encodeObject:self.snowflake   forKey:@"snowflake"];
+    [aCoder encodeObject:self.name        forKey:@"name"];
+    [aCoder encodeObject:self.ownerID     forKey:@"ownerID"];
+    [aCoder encodeInteger:self.memberCount forKey:@"memberCount"];
+    [aCoder encodeBool:self.muted         forKey:@"muted"];
+    [aCoder encodeObject:self.channels    forKey:@"channels"];
+    [aCoder encodeObject:self.iconURL forKey:@"iconURL"];
+}
+
+- (id)initWithCoder:(NSCoder *)aDecoder {
+    self = [super init];
+    if (self) {
+        self.snowflake   = [aDecoder decodeObjectForKey:@"snowflake"];
+        self.name        = [aDecoder decodeObjectForKey:@"name"];
+        self.ownerID     = [aDecoder decodeObjectForKey:@"ownerID"];
+        self.memberCount = [aDecoder decodeIntegerForKey:@"memberCount"];
+        self.muted       = [aDecoder decodeBoolForKey:@"muted"];
+        self.channels    = [aDecoder decodeObjectForKey:@"channels"];
+        self.iconURL = [aDecoder decodeObjectForKey:@"iconURL"];
+
+        // These get populated by the live READY — initialize empty so nothing crashes
+        self.members   = [NSMutableArray array];
+        self.roles     = [NSMutableDictionary dictionary];
+        self.userRoles = [NSMutableArray array];
+        self.emojis    = [NSMutableDictionary dictionary];
+    }
+    return self;
+}
+
 @end

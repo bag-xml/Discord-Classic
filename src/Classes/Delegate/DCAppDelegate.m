@@ -13,7 +13,9 @@
 #import "DCServerCommunicator.h"
 #import "DCUser.h"
 #import "DCRole.h"
-#import "DCServerCommunicator.h"
+#import "DCCacheManager.h"
+#import "DCGuild.h"
+#import "DCChannel.h"
 
 @interface DCAppDelegate ()
 @property (assign, nonatomic) BOOL shouldReload;
@@ -39,6 +41,18 @@
     [[NSNotificationCenter defaultCenter] addObserver:self
                                              selector:@selector(handleLogOut)
                                                  name:@"DCUserDidLogOut"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateAppBadge)
+                                                 name:@"MENTION_COUNT_UPDATED"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateAppBadge)
+                                                 name:@"READY"
+                                               object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self
+                                             selector:@selector(updateAppBadge)
+                                                 name:@"MESSAGE ACK"
                                                object:nil];
 
     self.window.backgroundColor = [UIColor clearColor];
@@ -82,7 +96,6 @@
                   diskCapacity:1024 * 1024 * 60 // 60MB disk cache
                       diskPath:nil];
     [NSURLCache setSharedURLCache:urlCache];
-    application.applicationIconBadgeNumber = 0;
     [SDWebImageManager sharedManager].imageCache.maxMemoryCost = 1024 * 1024 * 20; // 20MB for decoded images
     [SDWebImageManager sharedManager].imageCache.maxMemoryCountLimit = 50; // max 50 images in memory
 
@@ -113,6 +126,86 @@
     }
 
     if (DCServerCommunicator.sharedInstance.token.length) {
+        NSArray *cachedGuilds = [[DCCacheManager sharedInstance] loadCachedGuilds];
+        if (cachedGuilds.count) {
+            DCServerCommunicator.sharedInstance.guilds = [cachedGuilds mutableCopy];
+            NSArray *cachedLayout = [[DCCacheManager sharedInstance] loadDisplayLayout];
+            if (cachedLayout.count) {
+                NSMutableArray *relinked = [NSMutableArray arrayWithCapacity:cachedLayout.count];
+                for (id item in cachedLayout) {
+                    if ([item isKindOfClass:[DCGuild class]]) {
+                        DCGuild *archived = (DCGuild *)item;
+                        DCGuild *live = nil;
+                        for (DCGuild *g in DCServerCommunicator.sharedInstance.guilds) {
+                            if (archived.snowflake == nil && g.snowflake == nil) { live = g; break; }
+                            if ([g.snowflake isEqualToString:archived.snowflake]) { live = g; break; }
+                        }
+                        [relinked addObject:live ?: archived];
+                    } else {
+                        [relinked addObject:item]; // DCGuildFolder passes through as-is
+                    }
+                }
+                DCServerCommunicator.sharedInstance.cachedDisplayLayout = relinked;
+            }
+
+            DCUserInfo *cachedUserInfo = [[DCCacheManager sharedInstance] loadCachedUserInfo];
+            if (cachedUserInfo) {
+                DCServerCommunicator.sharedInstance.currentUserInfo = cachedUserInfo;
+            } else {
+                DCUserInfo *stub = [DCUserInfo new];
+                stub.guildPositions = [NSMutableArray array];
+                stub.guildFolders   = [NSMutableArray array];
+                DCServerCommunicator.sharedInstance.currentUserInfo = stub;
+            }
+
+            NSMutableDictionary *channels = [NSMutableDictionary dictionary];
+            for (DCGuild *guild in cachedGuilds) {
+                for (DCChannel *channel in guild.channels) {
+                    channel.parentGuild = guild;
+                    if (channel.snowflake) {
+                        [channels setObject:channel forKey:channel.snowflake];
+                    }
+                }
+            }
+            DCServerCommunicator.sharedInstance.channels = channels;
+
+            [NSNotificationCenter.defaultCenter
+                postNotificationName:@"READY"
+                              object:DCServerCommunicator.sharedInstance];
+
+            // DM icon is synchronous — safe to set immediately
+            DCGuild *dmGuild = DCServerCommunicator.sharedInstance.guilds.firstObject;
+            if ([dmGuild.name isEqualToString:@"Direct Messages"]) {
+                dmGuild.icon = [UIImage imageNamed:@"privateGuildLogo"];
+            }
+
+            // Defer icon fetches until after handleReady's reloadData has run.
+            // Both this block and the reloadData from handleReady are queued on the
+            // main queue — this goes in second, so reloadData (and displayGuilds
+            // being built) is guaranteed to happen first.
+            dispatch_async(dispatch_get_main_queue(), ^{
+                for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
+                    if (!guild.iconURL) continue;
+                    NSURL *url = [NSURL URLWithString:guild.iconURL];
+                    if (!url) continue;
+                    DCGuild *capturedGuild = guild;
+                    [[SDWebImageManager sharedManager]
+                        downloadImageWithURL:url
+                                     options:0
+                                    progress:nil
+                                   completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, BOOL finished, NSURL *imageURL) {
+                                       if (!image || !finished) return;
+                                       dispatch_async(dispatch_get_main_queue(), ^{
+                                           capturedGuild.icon = image;
+                                           [NSNotificationCenter.defaultCenter
+                                               postNotificationName:@"RELOAD GUILD"
+                                                             object:capturedGuild];
+                                       });
+                                   }];
+                }
+            });
+        }
+
         [DCServerCommunicator.sharedInstance startCommunicator];
     }
     
@@ -182,6 +275,14 @@ didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken {
 - (void)application:(UIApplication *)application
 didFailToRegisterForRemoteNotificationsWithError:(NSError *)error {
     NSLog(@"Failed to register for push: %@", error);
+}
+
+- (void)updateAppBadge {
+    NSInteger total = 0;
+    for (DCGuild *guild in DCServerCommunicator.sharedInstance.guilds) {
+        total += guild.mentionCount;
+    }
+    [UIApplication sharedApplication].applicationIconBadgeNumber = total;
 }
 
 - (void)handleLogOut {

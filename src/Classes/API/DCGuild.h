@@ -14,7 +14,7 @@
 #import <UIKit/UIKit.h>
 #import "DCTools.h"
 
-@interface DCGuild : NSObject
+@interface DCGuild : NSObject<NSCoding>
 // ID/snowflake
 @property (strong, nonatomic) DCSnowflake* snowflake;
 // Name
@@ -30,6 +30,7 @@
 
 // The guild's icon
 @property (strong, nonatomic) UIImage* icon;
+@property (strong, nonatomic) NSString *iconURL;
 // The guild's banner
 @property (strong, nonatomic) UIImage* banner;
 

@@ -24,6 +24,7 @@
 #include "DCTools.h"
 #include "SDWebImageManager.h"
 #import "DCContentManager.h"
+#import "DCCacheManager.h"
 
 @implementation DCServerCommunicator
 UIActivityIndicatorView *spinner;
@@ -705,12 +706,17 @@ NSTimer *heartbeatTimer = nil;
             DBGLOG(@"[READY] Re-subscribed to channel %@ after reconnect", channelSnowflake);
         }
     }
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [NSNotificationCenter.defaultCenter postNotificationName:@"READY" object:self];
-        // Dismiss the 'reconnecting' dialogue box
-        [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
-        [self dismissNotification];
-    });
+    // Persist guild/channel structure for cold-start cache
+        [[DCCacheManager sharedInstance] saveGuilds:self.guilds];
+        [[DCCacheManager sharedInstance] saveGuilds:self.guilds];
+        [[DCCacheManager sharedInstance] saveUserInfo:self.currentUserInfo];
+
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [NSNotificationCenter.defaultCenter postNotificationName:@"READY" object:self];
+            // Dismiss the 'reconnecting' dialogue box
+            [self.alertView dismissWithClickedButtonIndex:0 animated:YES];
+            [self dismissNotification];
+        });
 }
 
 - (void)handlePresenceUpdateEventWithData:(NSDictionary *)d {
@@ -1292,18 +1298,8 @@ NSTimer *heartbeatTimer = nil;
                                                 repeats:NO];
             });
         } else if (statusCode == 4004) {
-            // invalid token, show alert and clear token
             dispatch_async(dispatch_get_main_queue(), ^{
-                weakSelf.token = nil;
-                dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Invalid Token"
-                                                                    message:@"Your Discord token is invalid. Please retry with a valid token."
-                                                                   delegate:weakSelf
-                                                          cancelButtonTitle:@"Exit"
-                                                          otherButtonTitles:nil];
-                    alert.tag = 999;
-                    [alert show];
-                });
+                [weakSelf performLogout];
             });
         } else {
             // some other error, try to reconnect
@@ -1624,6 +1620,33 @@ NSTimer *heartbeatTimer = nil;
     [self resetInflateStream];
     self.isReconnecting = NO;
     self.reconnectAttempts = 0;
+}
+
+// DCServerCommunicator.m
+- (void)performLogout {
+    // Nil token first so callbacks during teardown can't trigger a reconnect
+    self.token           = nil;
+    self.didAuthenticate = NO;
+
+    [self prepareForLogout];
+
+    self.currentUserInfo     = nil;
+    self.guilds              = nil;
+    self.channels            = nil;
+    self.loadedUsers         = nil;
+    self.loadedRoles         = nil;
+    self.loadedEmojis        = nil;
+    self.selectedGuild       = nil;
+    self.selectedChannel     = nil;
+    self.userChannelSettings = nil;
+
+    [NSUserDefaults.standardUserDefaults removeObjectForKey:@"token"];
+    [NSUserDefaults.standardUserDefaults synchronize];
+
+    [[DCCacheManager sharedInstance] invalidateAllMessages];
+    [[DCCacheManager sharedInstance] handleMemoryWarning];
+
+    [[NSNotificationCenter defaultCenter] postNotificationName:@"DCUserDidLogOut" object:nil];
 }
 
 @end

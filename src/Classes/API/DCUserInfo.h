@@ -1,7 +1,7 @@
 #import <Foundation/Foundation.h>
 #import "DCTools.h"
 
-@interface DCUserInfo : NSObject
+@interface DCUserInfo : NSObject<NSCoding>
 
 @property (strong, nonatomic) NSString* username;
 @property (strong, nonatomic) NSString* globalName;
